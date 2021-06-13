@@ -1,3 +1,5 @@
+### Warning! This fork contains experimental Vivecraft builds. To get the official version, go to https://github.com/jrbudda/Vivecraft_116
+
 Vivecraft for Minecraft 1.16
 =========
 
