@@ -19,6 +19,26 @@
 	{
 		"name": "optifine:OptiFine:$OFVERSION",
 		"MMC-hint": "local"
+	},
+	{
+		"name": "com.github.bhaptics:tact-java:0.1.4",
+		"url": "https://jitpack.io/"
+	},
+	{
+		"name": "org.java-websocket:Java-WebSocket:1.5.1",
+		"url": "https://repo1.maven.org/maven2/"
+	},
+	{
+		"name": "com.google.code.gson:gson:2.8.6",
+		"url": "https://repo1.maven.org/maven2/"
+	},
+	{
+		"name": "org.slf4j:slf4j-simple:1.7.25",
+		"url": "https://repo1.maven.org/maven2/"
+	},
+	{
+		"name": "org.slf4j:slf4j-api:1.7.25",
+		"url": "https://repo1.maven.org/maven2/"
 	}
 	],
 	"mainClass": "io.github.zekerzhayard.forgewrapper.installer.Main",
