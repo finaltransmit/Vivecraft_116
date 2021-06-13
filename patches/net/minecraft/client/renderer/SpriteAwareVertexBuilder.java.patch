@@ -1,0 +1,23 @@
+--- a/net/minecraft/client/renderer/SpriteAwareVertexBuilder.java
++++ b/net/minecraft/client/renderer/SpriteAwareVertexBuilder.java
+@@ -2,6 +2,7 @@
+ 
+ import com.mojang.blaze3d.vertex.IVertexBuilder;
+ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++import net.optifine.SmartAnimations;
+ import net.optifine.render.VertexBuilderWrapper;
+ 
+ public class SpriteAwareVertexBuilder extends VertexBuilderWrapper implements IVertexBuilder
+@@ -12,6 +13,12 @@
+     public SpriteAwareVertexBuilder(IVertexBuilder bufferIn, TextureAtlasSprite spriteIn)
+     {
+         super(bufferIn);
++
++        if (SmartAnimations.isActive())
++        {
++            SmartAnimations.spriteRendered(spriteIn);
++        }
++
+         this.vertexBuilder = bufferIn;
+         this.atlasSprite = spriteIn;
+     }

@@ -1,0 +1,125 @@
+--- a/net/minecraft/util/concurrent/ThreadTaskExecutor.java
++++ b/net/minecraft/util/concurrent/ThreadTaskExecutor.java
+@@ -7,6 +7,13 @@
+ import java.util.concurrent.locks.LockSupport;
+ import java.util.function.BooleanSupplier;
+ import java.util.function.Supplier;
++import net.minecraft.client.Minecraft;
++import net.minecraft.network.IPacket;
++import net.minecraft.network.play.server.SChunkDataPacket;
++import net.minecraft.network.play.server.SUnloadChunkPacket;
++import net.minecraft.network.play.server.SUpdateLightPacket;
++import net.optifine.Config;
++import net.optifine.util.PacketRunnable;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -112,8 +119,21 @@
+ 
+     protected void drainTasks()
+     {
++        int i = Integer.MAX_VALUE;
++
++        if (Config.isLazyChunkLoading() && this == Minecraft.getInstance())
++        {
++            i = this.getTaskCount();
++        }
++
+         while (this.driveOne())
+         {
++            --i;
++
++            if (i <= 0)
++            {
++                break;
++            }
+         }
+     }
+ 
+@@ -182,4 +202,86 @@
+             }
+         }
+     }
++
++    private int getTaskCount()
++    {
++        if (this.queue.isEmpty())
++        {
++            return 0;
++        }
++        else
++        {
++            R[] ar = (R[]) this.queue.toArray(new Runnable[this.queue.size()]);
++            double d0 = this.getChunkUpdateWeight(ar);
++
++            if (d0 < 5.0D)
++            {
++                return Integer.MAX_VALUE;
++            }
++            else
++            {
++                int i = ar.length;
++                int j = Math.max(Config.getFpsAverage(), 1);
++                double d1 = (double)(i * 10 / j);
++                return this.getCount(ar, d1);
++            }
++        }
++    }
++
++    private int getCount(R[] p_getCount_1_, double p_getCount_2_)
++    {
++        double d0 = 0.0D;
++
++        for (int i = 0; i < p_getCount_1_.length; ++i)
++        {
++            R r = p_getCount_1_[i];
++            d0 += this.getChunkUpdateWeight(r);
++
++            if (d0 > p_getCount_2_)
++            {
++                return i + 1;
++            }
++        }
++
++        return p_getCount_1_.length;
++    }
++
++    private double getChunkUpdateWeight(R[] p_getChunkUpdateWeight_1_)
++    {
++        double d0 = 0.0D;
++
++        for (int i = 0; i < p_getChunkUpdateWeight_1_.length; ++i)
++        {
++            R r = p_getChunkUpdateWeight_1_[i];
++            d0 += this.getChunkUpdateWeight(r);
++        }
++
++        return d0;
++    }
++
++    private double getChunkUpdateWeight(Runnable p_getChunkUpdateWeight_1_)
++    {
++        if (p_getChunkUpdateWeight_1_ instanceof PacketRunnable)
++        {
++            PacketRunnable packetrunnable = (PacketRunnable)p_getChunkUpdateWeight_1_;
++            IPacket ipacket = packetrunnable.getPacket();
++
++            if (ipacket instanceof SChunkDataPacket)
++            {
++                return 1.0D;
++            }
++
++            if (ipacket instanceof SUpdateLightPacket)
++            {
++                return 0.2D;
++            }
++
++            if (ipacket instanceof SUnloadChunkPacket)
++            {
++                return 2.6D;
++            }
++        }
++
++        return 0.0D;
++    }
+ }

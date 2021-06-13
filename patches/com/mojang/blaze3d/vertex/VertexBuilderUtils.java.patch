@@ -1,0 +1,13 @@
+--- a/com/mojang/blaze3d/vertex/VertexBuilderUtils.java
++++ b/com/mojang/blaze3d/vertex/VertexBuilderUtils.java
+@@ -103,5 +103,10 @@
+         {
+             this.fixMultitextureUV = !this.vertexBuilder.isMultiTexture() && this.delegateBuilder.isMultiTexture();
+         }
++
++        public IVertexBuilder getSecondaryBuilder()
++        {
++            return this.vertexBuilder;
++        }
+     }
+ }

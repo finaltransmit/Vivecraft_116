@@ -76,3 +76,38 @@
      }, (p_lambda$static$70_0_, p_lambda$static$70_1_) ->
      {
          return p_lambda$static$70_1_.getGenericValueComponent(p_lambda$static$70_0_.mainHand.getHandName());
+@@ -651,8 +669,8 @@
+     public static final IteratableOption SHOW_CAPES = new IteratableOptionOF("of.options.SHOW_CAPES");
+     public static final IteratableOption CONNECTED_TEXTURES = new IteratableOptionOF("of.options.CONNECTED_TEXTURES");
+     public static final IteratableOption CUSTOM_ITEMS = new IteratableOptionOF("of.options.CUSTOM_ITEMS");
+-    public static final SliderPercentageOption AA_LEVEL = new SliderPercentageOptionOF("of.options.AA_LEVEL", 0.0D, 16.0D, 1.0F);
+-    public static final SliderPercentageOption AF_LEVEL = new SliderPercentageOptionOF("of.options.AF_LEVEL", 1.0D, 16.0D, 1.0F);
++    public static final SliderPercentageOption AA_LEVEL = new SliderPercentageOptionOF("of.options.AA_LEVEL", 0.0D, 16.0D, new double[] {0.0D, 2.0D, 4.0D, 6.0D, 8.0D, 12.0D, 16.0D});
++    public static final SliderPercentageOption AF_LEVEL = new SliderPercentageOptionOF("of.options.AF_LEVEL", 1.0D, 16.0D, new double[] {1.0D, 2.0D, 4.0D, 8.0D, 16.0D});
+     public static final IteratableOption ANIMATED_TEXTURES = new IteratableOptionOF("of.options.ANIMATED_TEXTURES");
+     public static final IteratableOption NATURAL_TEXTURES = new IteratableOptionOF("of.options.NATURAL_TEXTURES");
+     public static final IteratableOption EMISSIVE_TEXTURES = new IteratableOptionOF("of.options.EMISSIVE_TEXTURES");
+@@ -684,7 +702,7 @@
+ 
+     public abstract Widget createWidget(GameSettings options, int xIn, int yIn, int widthIn);
+ 
+-    protected ITextComponent getBaseMessageTranslation()
++    public ITextComponent getBaseMessageTranslation()
+     {
+         return this.translatedBaseMessage;
+     }
+@@ -714,12 +732,12 @@
+         return new TranslationTextComponent("options.percent_add_value", this.getBaseMessageTranslation(), doubleIn);
+     }
+ 
+-    protected ITextComponent getGenericValueComponent(ITextComponent valueMessage)
++    public ITextComponent getGenericValueComponent(ITextComponent valueMessage)
+     {
+         return new TranslationTextComponent("options.generic_value", this.getBaseMessageTranslation(), valueMessage);
+     }
+ 
+-    protected ITextComponent getMessageWithValue(int value)
++    public ITextComponent getMessageWithValue(int value)
+     {
+         return this.getGenericValueComponent(new StringTextComponent(Integer.toString(value)));
+     }

@@ -1,0 +1,57 @@
+--- a/net/minecraft/client/gui/overlay/BossOverlayGui.java
++++ b/net/minecraft/client/gui/overlay/BossOverlayGui.java
+@@ -12,6 +12,9 @@
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.text.ITextComponent;
+ import net.minecraft.world.BossInfo;
++import net.optifine.Config;
++import net.optifine.CustomColors;
++import net.optifine.reflect.Reflector;
+ 
+ public class BossOverlayGui extends AbstractGui
+ {
+@@ -35,14 +38,36 @@
+             {
+                 int k = i / 2 - 91;
+                 RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+-                this.client.getTextureManager().bindTexture(GUI_BARS_TEXTURES);
+-                this.func_238485_a_(p_238484_1_, k, j, clientbossinfo);
+-                ITextComponent itextcomponent = clientbossinfo.getName();
+-                int l = this.client.fontRenderer.getStringPropertyWidth(itextcomponent);
+-                int i1 = i / 2 - l / 2;
+-                int j1 = j - 9;
+-                this.client.fontRenderer.func_243246_a(p_238484_1_, itextcomponent, (float)i1, (float)j1, 16777215);
+-                j += 10 + 9;
++                boolean flag = true;
++                int l = 19;
++
++                if (Reflector.ForgeHooksClient_bossBarRenderPre.exists())
++                {
++                    Object object = Reflector.ForgeHooksClient_bossBarRenderPre.call(p_238484_1_, this.client.getMainWindow(), clientbossinfo, k, j, 10 + 9);
++                    flag = !Reflector.callBoolean(object, Reflector.Event_isCanceled);
++                    l = Reflector.callInt(object, Reflector.RenderGameOverlayEvent_BossInfo_getIncrement);
++                }
++
++                if (flag)
++                {
++                    this.client.getTextureManager().bindTexture(GUI_BARS_TEXTURES);
++                    this.func_238485_a_(p_238484_1_, k, j, clientbossinfo);
++                    ITextComponent itextcomponent = clientbossinfo.getName();
++                    int i1 = this.client.fontRenderer.getStringPropertyWidth(itextcomponent);
++                    int j1 = i / 2 - i1 / 2;
++                    int k1 = j - 9;
++                    int l1 = 16777215;
++
++                    if (Config.isCustomColors())
++                    {
++                        l1 = CustomColors.getBossTextColor(l1);
++                    }
++
++                    this.client.fontRenderer.func_243246_a(p_238484_1_, itextcomponent, (float)j1, (float)k1, l1);
++                }
++
++                j += l;
++                Reflector.ForgeHooksClient_bossBarRenderPost.callVoid(p_238484_1_, this.client.getMainWindow());
+ 
+                 if (j >= this.client.getMainWindow().getScaledHeight() / 3)
+                 {

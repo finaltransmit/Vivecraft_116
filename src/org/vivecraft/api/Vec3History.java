@@ -107,6 +107,13 @@ public class Vec3History {
 		return out/j;
 	}
 
+	/*
+	* Get the Velocity Vector based on the specified amount of time
+	* */
+	public Vector3d getVelocity(double seconds){
+		return netMovement(seconds).scale(1/seconds);
+	}
+
 	/**
 	 * Get the average room position for the last @seconds.
 	 */

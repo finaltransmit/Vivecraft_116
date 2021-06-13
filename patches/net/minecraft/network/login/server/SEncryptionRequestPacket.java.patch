@@ -1,0 +1,18 @@
+--- a/net/minecraft/network/login/server/SEncryptionRequestPacket.java
++++ b/net/minecraft/network/login/server/SEncryptionRequestPacket.java
+@@ -18,11 +18,11 @@
+     {
+     }
+ 
+-    public SEncryptionRequestPacket(String p_i242141_1_, byte[] p_i242141_2_, byte[] p_i242141_3_)
++    public SEncryptionRequestPacket(String p_i242142_1_, byte[] p_i242142_2_, byte[] p_i242142_3_)
+     {
+-        this.hashedServerId = p_i242141_1_;
+-        this.publicKey = p_i242141_2_;
+-        this.verifyToken = p_i242141_3_;
++        this.hashedServerId = p_i242142_1_;
++        this.publicKey = p_i242142_2_;
++        this.verifyToken = p_i242142_3_;
+     }
+ 
+     /**

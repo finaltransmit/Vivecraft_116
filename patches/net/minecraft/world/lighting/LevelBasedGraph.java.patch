@@ -1,0 +1,72 @@
+--- a/net/minecraft/world/lighting/LevelBasedGraph.java
++++ b/net/minecraft/world/lighting/LevelBasedGraph.java
+@@ -26,10 +26,26 @@
+         {
+             this.levelCount = levelCount;
+             this.updatesByLevel = new LongLinkedOpenHashSet[levelCount];
++            int i = p_i51298_2_;
++            int j = p_i51298_3_;
+ 
+-            for (int i = 0; i < levelCount; ++i)
++            if (this.getClass() != BlockLightEngine.class && this.getClass() != SkyLightEngine.class)
+             {
+-                this.updatesByLevel[i] = new LongLinkedOpenHashSet(p_i51298_2_, 0.5F)
++                if (this.getClass() == BlockLightStorage.class || this.getClass() == SkyLightStorage.class)
++                {
++                    i = Math.max(p_i51298_2_, 2048);
++                    j = Math.max(p_i51298_3_, 2048);
++                }
++            }
++            else
++            {
++                i = Math.max(p_i51298_2_, 8192);
++                j = Math.max(p_i51298_3_, 8192);
++            }
++
++            for (int k = 0; k < levelCount; ++k)
++            {
++                this.updatesByLevel[k] = new LongLinkedOpenHashSet(i, 0.5F)
+                 {
+                     protected void rehash(int p_rehash_1_)
+                     {
+@@ -41,7 +57,7 @@
+                 };
+             }
+ 
+-            this.propagationLevels = new Long2ByteOpenHashMap(p_i51298_3_, 0.5F)
++            this.propagationLevels = new Long2ByteOpenHashMap(j, 0.5F)
+             {
+                 protected void rehash(int p_rehash_1_)
+                 {
+@@ -104,14 +120,15 @@
+     public void func_227465_a_(LongPredicate p_227465_1_)
+     {
+         LongList longlist = new LongArrayList();
+-        this.propagationLevels.keySet().forEach((long p_229982_2_) ->
+-        {
+-            if (p_227465_1_.test(p_229982_2_))
++        for (Long long1 : this.propagationLevels.keySet()) {
++            if (p_227465_1_.test(long1))
+             {
+-                longlist.add(p_229982_2_);
++                longlist.add(long1);
+             }
+-        });
+-        longlist.forEach((java.util.function.LongConsumer) this::cancelUpdate);
++		}
++        for (Long long1 : longlist) {
++            	this.cancelUpdate(long1);
++		}
+     }
+ 
+     private void removeToUpdate(long pos, int level, int maxLevel, boolean removeAll)
+@@ -300,4 +317,9 @@
+      * Returns level propagated from start position with specified level to the neighboring end position.
+      */
+     protected abstract int getEdgeLevel(long startPos, long endPos, int startLevel);
++
++    protected int queuedUpdateSize()
++    {
++        return this.propagationLevels.size();
++    }
+ }

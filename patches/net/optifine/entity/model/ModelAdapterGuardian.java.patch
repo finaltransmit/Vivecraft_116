@@ -1,0 +1,14 @@
+--- a/net/optifine/entity/model/ModelAdapterGuardian.java
++++ b/net/optifine/entity/model/ModelAdapterGuardian.java
+@@ -17,6 +17,11 @@
+         super(EntityType.GUARDIAN, "guardian", 0.5F);
+     }
+ 
++    public ModelAdapterGuardian(EntityType entityType, String name, float shadowSize)
++    {
++        super(entityType, name, shadowSize);
++    }
++
+     public Model makeModel()
+     {
+         return new GuardianModel();

@@ -1,0 +1,23 @@
+--- a/net/optifine/CustomSky.java
++++ b/net/optifine/CustomSky.java
+@@ -12,6 +12,8 @@
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.world.World;
+ import net.optifine.render.Blender;
++import net.optifine.shaders.RenderStage;
++import net.optifine.shaders.Shaders;
+ import net.optifine.util.PropertiesOrdered;
+ import net.optifine.util.StrUtils;
+ import net.optifine.util.TextureUtils;
+@@ -137,6 +139,11 @@
+     {
+         if (worldSkyLayers != null)
+         {
++            if (Config.isShaders())
++            {
++                Shaders.setRenderStage(RenderStage.CUSTOM_SKY);
++            }
++
+             int i = WorldUtils.getDimensionId(world);
+ 
+             if (i >= 0 && i < worldSkyLayers.length)

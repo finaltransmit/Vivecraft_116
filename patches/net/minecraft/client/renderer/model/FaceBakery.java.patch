@@ -1,0 +1,19 @@
+--- a/net/minecraft/client/renderer/model/FaceBakery.java
++++ b/net/minecraft/client/renderer/model/FaceBakery.java
+@@ -17,6 +17,7 @@
+ import net.optifine.Config;
+ import net.optifine.model.BlockModelUtils;
+ import net.optifine.reflect.Reflector;
++import net.optifine.reflect.ReflectorForge;
+ 
+ public class FaceBakery
+ {
+@@ -53,7 +54,7 @@
+ 
+         if (Reflector.ForgeHooksClient_fillNormal.exists())
+         {
+-            Reflector.call(Reflector.ForgeHooksClient_fillNormal, aint, direction);
++            ReflectorForge.fillNormal(aint, direction);
+             return new BakedQuad(aint, face.tintIndex, direction, sprite, shade);
+         }
+         else

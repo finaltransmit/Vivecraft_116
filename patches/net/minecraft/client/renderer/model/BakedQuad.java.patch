@@ -1,0 +1,82 @@
+--- a/net/minecraft/client/renderer/model/BakedQuad.java
++++ b/net/minecraft/client/renderer/model/BakedQuad.java
+@@ -9,6 +9,8 @@
+ import net.optifine.model.BakedQuadRetextured;
+ import net.optifine.model.QuadBounds;
+ import net.optifine.reflect.Reflector;
++import net.optifine.render.QuadVertexPositions;
++import net.optifine.render.VertexPosition;
+ 
+ public class BakedQuad implements IVertexProducer
+ {
+@@ -25,6 +27,7 @@
+     private QuadBounds quadBounds;
+     private boolean quadEmissiveChecked;
+     private BakedQuad quadEmissive;
++    private QuadVertexPositions quadVertexPositions;
+ 
+     public BakedQuad(int[] vertexData, int tintIndex, Direction face, TextureAtlasSprite sprite, boolean applyDiffuseLighting)
+     {
+@@ -146,38 +149,25 @@
+         {
+             if (this.vertexData.length == DefaultVertexFormats.BLOCK_VANILLA_SIZE)
+             {
+-                this.vertexData = expandVertexData(this.vertexData);
++                this.vertexData = fixVertexDataSize(this.vertexData, DefaultVertexFormats.BLOCK_SHADERS_SIZE);
+             }
+         }
+         else if (this.vertexData.length == DefaultVertexFormats.BLOCK_SHADERS_SIZE)
+         {
+-            this.vertexData = compactVertexData(this.vertexData);
++            this.vertexData = fixVertexDataSize(this.vertexData, DefaultVertexFormats.BLOCK_VANILLA_SIZE);
+         }
+     }
+ 
+-    private static int[] expandVertexData(int[] p_expandVertexData_0_)
++    private static int[] fixVertexDataSize(int[] p_fixVertexDataSize_0_, int p_fixVertexDataSize_1_)
+     {
+-        int i = p_expandVertexData_0_.length / 4;
+-        int j = i * 2;
++        int i = p_fixVertexDataSize_0_.length / 4;
++        int j = p_fixVertexDataSize_1_ / 4;
+         int[] aint = new int[j * 4];
+ 
+         for (int k = 0; k < 4; ++k)
+         {
+-            System.arraycopy(p_expandVertexData_0_, k * i, aint, k * j, i);
+-        }
+-
+-        return aint;
+-    }
+-
+-    private static int[] compactVertexData(int[] p_compactVertexData_0_)
+-    {
+-        int i = p_compactVertexData_0_.length / 4;
+-        int j = i / 2;
+-        int[] aint = new int[j * 4];
+-
+-        for (int k = 0; k < 4; ++k)
+-        {
+-            System.arraycopy(p_compactVertexData_0_, k * i, aint, k * j, j);
++            int l = Math.min(i, j);
++            System.arraycopy(p_fixVertexDataSize_0_, k * i, aint, k * j, l);
+         }
+ 
+         return aint;
+@@ -246,6 +236,16 @@
+         }
+     }
+ 
++    public VertexPosition[] getVertexPositions(int p_getVertexPositions_1_)
++    {
++        if (this.quadVertexPositions == null)
++        {
++            this.quadVertexPositions = new QuadVertexPositions();
++        }
++
++        return this.quadVertexPositions.get(p_getVertexPositions_1_);
++    }
++
+     public String toString()
+     {
+         return "vertexData: " + this.vertexData.length + ", tint: " + this.tintIndex + ", facing: " + this.face + ", sprite: " + this.sprite;

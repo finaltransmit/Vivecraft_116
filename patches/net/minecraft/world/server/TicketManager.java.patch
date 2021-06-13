@@ -1,0 +1,39 @@
+--- a/net/minecraft/world/server/TicketManager.java
++++ b/net/minecraft/world/server/TicketManager.java
+@@ -318,6 +318,18 @@
+         return this.field_219384_l.func_225396_a();
+     }
+ 
++    public <T> void registerTicking(TicketType<T> p_registerTicking_1_, ChunkPos p_registerTicking_2_, int p_registerTicking_3_, T p_registerTicking_4_)
++    {
++        Ticket ticket = (Ticket)Reflector.ForgeTicket_Constructor.newInstance(p_registerTicking_1_, 33 - p_registerTicking_3_, p_registerTicking_4_, true);
++        this.register(p_registerTicking_2_.asLong(), ticket);
++    }
++
++    public <T> void releaseTicking(TicketType<T> p_releaseTicking_1_, ChunkPos p_releaseTicking_2_, int p_releaseTicking_3_, T p_releaseTicking_4_)
++    {
++        Ticket ticket = (Ticket)Reflector.ForgeTicket_Constructor.newInstance(p_releaseTicking_1_, 33 - p_releaseTicking_3_, p_releaseTicking_4_, true);
++        this.release(p_releaseTicking_2_.asLong(), ticket);
++    }
++
+     public boolean shouldForceTicks(long p_shouldForceTicks_1_)
+     {
+         SortedArraySet < Ticket<? >> sortedarrayset = this.forcedTickets.get(p_shouldForceTicks_1_);
+@@ -328,7 +340,7 @@
+     {
+         public ChunkTicketTracker()
+         {
+-            super(ChunkManager.MAX_LOADED_LEVEL + 2, 16, 256);
++            super(ChunkManager.MAX_LOADED_LEVEL + 2, 256, 256);
+         }
+ 
+         protected int getSourceLevel(long pos)
+@@ -389,7 +401,7 @@
+ 
+         protected PlayerChunkTracker(int levelCount)
+         {
+-            super(levelCount + 2, 16, 256);
++            super(levelCount + 2, 2048, 2048);
+             this.range = levelCount;
+             this.chunksInRange.defaultReturnValue((byte)(levelCount + 2));
+         }

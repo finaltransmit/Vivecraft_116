@@ -1,0 +1,97 @@
+--- a/net/minecraft/client/renderer/texture/AtlasTexture.java
++++ b/net/minecraft/client/renderer/texture/AtlasTexture.java
+@@ -501,42 +501,19 @@
+             }
+         }
+ 
+-        if (Config.isMultiTexture())
+-        {
+-            for (TextureAtlasSprite textureatlassprite1 : this.listAnimatedSprites)
+-            {
+-                if (this.isAnimationEnabled(textureatlassprite1) && textureatlassprite1.isAnimationActive())
+-                {
+-                    i += updateAnimationSingle(textureatlassprite1);
+-
+-                    if (textureatlassprite1.spriteNormal != null)
+-                    {
+-                        i += updateAnimationSingle(textureatlassprite1.spriteNormal);
+-                    }
+-
+-                    if (textureatlassprite1.spriteSpecular != null)
+-                    {
+-                        i += updateAnimationSingle(textureatlassprite1.spriteSpecular);
+-                    }
+-                }
+-            }
+-
+-            GlStateManager.bindTexture(this.getGlTextureId());
+-        }
+-
+         if (Config.isShaders())
+         {
+             if (flag)
+             {
+                 GlStateManager.bindTexture(this.getMultiTexID().norm);
+ 
+-                for (TextureAtlasSprite textureatlassprite2 : this.listAnimatedSprites)
++                for (TextureAtlasSprite textureatlassprite1 : this.listAnimatedSprites)
+                 {
+-                    if (textureatlassprite2.spriteNormal != null && this.isAnimationEnabled(textureatlassprite2) && textureatlassprite2.isAnimationActive())
++                    if (textureatlassprite1.spriteNormal != null && this.isAnimationEnabled(textureatlassprite1) && textureatlassprite1.isAnimationActive())
+                     {
+-                        textureatlassprite2.spriteNormal.updateAnimation();
++                        textureatlassprite1.spriteNormal.updateAnimation();
+ 
+-                        if (textureatlassprite2.spriteNormal.isAnimationActive())
++                        if (textureatlassprite1.spriteNormal.isAnimationActive())
+                         {
+                             ++i;
+                         }
+@@ -548,13 +525,13 @@
+             {
+                 GlStateManager.bindTexture(this.getMultiTexID().spec);
+ 
+-                for (TextureAtlasSprite textureatlassprite3 : this.listAnimatedSprites)
++                for (TextureAtlasSprite textureatlassprite2 : this.listAnimatedSprites)
+                 {
+-                    if (textureatlassprite3.spriteSpecular != null && this.isAnimationEnabled(textureatlassprite3) && textureatlassprite3.isAnimationActive())
++                    if (textureatlassprite2.spriteSpecular != null && this.isAnimationEnabled(textureatlassprite2) && textureatlassprite2.isAnimationActive())
+                     {
+-                        textureatlassprite3.spriteSpecular.updateAnimation();
++                        textureatlassprite2.spriteSpecular.updateAnimation();
+ 
+-                        if (textureatlassprite3.spriteSpecular.isAnimationActive())
++                        if (textureatlassprite2.spriteSpecular.isAnimationActive())
+                         {
+                             ++i;
+                         }
+@@ -568,6 +545,29 @@
+             }
+         }
+ 
++        if (Config.isMultiTexture())
++        {
++            for (TextureAtlasSprite textureatlassprite3 : this.listAnimatedSprites)
++            {
++                if (this.isAnimationEnabled(textureatlassprite3) && textureatlassprite3.isAnimationActive())
++                {
++                    i += updateAnimationSingle(textureatlassprite3);
++
++                    if (textureatlassprite3.spriteNormal != null)
++                    {
++                        i += updateAnimationSingle(textureatlassprite3.spriteNormal);
++                    }
++
++                    if (textureatlassprite3.spriteSpecular != null)
++                    {
++                        i += updateAnimationSingle(textureatlassprite3.spriteSpecular);
++                    }
++                }
++            }
++
++            GlStateManager.bindTexture(this.getGlTextureId());
++        }
++
+         if (this.terrain)
+         {
+             int j = Config.getMinecraft().worldRenderer.getFrameCount();

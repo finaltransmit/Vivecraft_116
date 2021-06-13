@@ -1,6 +1,38 @@
 --- a/net/minecraft/client/MainWindow.java
 +++ b/net/minecraft/client/MainWindow.java
-@@ -147,7 +147,7 @@
+@@ -105,11 +105,12 @@
+         GLFW.glfwWindowHint(139266, 2);
+         GLFW.glfwWindowHint(139267, 0);
+         GLFW.glfwWindowHint(139272, 0);
++        long i = 0L;
+ 
+         if (Reflector.EarlyProgressVisualization_handOffWindow.exists())
+         {
+             Object object = Reflector.getFieldValue(Reflector.EarlyProgressVisualization_INSTANCE);
+-            this.handle = Reflector.callLong(object, Reflector.EarlyProgressVisualization_handOffWindow, (IntSupplier)() ->
++            i = Reflector.callLong(object, Reflector.EarlyProgressVisualization_handOffWindow, (IntSupplier)() ->
+             {
+                 return this.width;
+             }, (IntSupplier)() ->
+@@ -122,6 +123,17 @@
+             {
+                 return this.fullscreen && monitor != null ? monitor.getMonitorPointer() : 0L;
+             });
++
++            if (Config.isAntialiasing())
++            {
++                GLFW.glfwDestroyWindow(i);
++                i = 0L;
++            }
++        }
++
++        if (i != 0L)
++        {
++            this.handle = i;
+         }
+         else
+         {
+@@ -147,7 +159,7 @@
          GL.createCapabilities();
          this.updateVideoMode();
          this.updateFramebufferSize();
@@ -9,7 +41,7 @@
          GLFW.glfwSetWindowPosCallback(this.handle, this::onWindowPosUpdate);
          GLFW.glfwSetWindowSizeCallback(this.handle, this::onWindowSizeUpdate);
          GLFW.glfwSetWindowFocusCallback(this.handle, this::onWindowFocusUpdate);
-@@ -309,7 +309,9 @@
+@@ -309,7 +321,9 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
          this.vsync = vsyncEnabled;
@@ -20,7 +52,7 @@
      }
  
      public void close()
-@@ -328,21 +330,22 @@
+@@ -328,21 +342,22 @@
          this.windowY = windowYIn;
      }
  
@@ -47,7 +79,7 @@
                  }
              }
          }
-@@ -371,8 +374,13 @@
+@@ -371,8 +386,13 @@
  
      private void onWindowSizeUpdate(long windowPointer, int windowWidthIn, int windowHeightIn)
      {
@@ -61,7 +93,7 @@
      }
  
      private void onWindowFocusUpdate(long windowPointer, boolean hasFocus)
-@@ -507,13 +515,14 @@
+@@ -507,13 +527,14 @@
      {
          int i;
  
@@ -78,7 +110,7 @@
          }
  
          return i;
-@@ -522,10 +531,10 @@
+@@ -522,10 +543,10 @@
      public void setGuiScale(double scaleFactor)
      {
          this.guiScaleFactor = scaleFactor;
@@ -93,7 +125,7 @@
      }
  
      public void setWindowTitle(String title)
-@@ -548,12 +557,16 @@
+@@ -548,12 +569,16 @@
  
      public int getFramebufferWidth()
      {

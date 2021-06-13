@@ -2,45 +2,74 @@ package org.vivecraft.gameplay.trackers;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.particles.IParticleData;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
+import org.vivecraft.api.VRData;
+import org.vivecraft.gameplay.OpenVRPlayer;
+import org.vivecraft.provider.MCOpenVR;
+import org.vivecraft.utils.Debug;
+import org.vivecraft.utils.math.Vector3;
+
+import java.awt.*;
 
 /**
  * Created by Hendrik on 02-Aug-16.
  */
 public class SwimTracker extends Tracker {
 
-	Vector3d motion=Vector3d.ZERO;
-	double friction=0.9f;
+	Vector3d motion = Vector3d.ZERO;
+	double friction = 0.9f;
 
 	double lastDist;
 
-	final double riseSpeed=0.005f;
-	double swimspeed=1.3f;
+	final double riseSpeed = 0.005f;
+	double swimspeed = 1f;
 
 	public SwimTracker(Minecraft mc) {
 		super(mc);
 	}
 
-	public boolean isActive(ClientPlayerEntity p){
-		if(mc.vrSettings.seated)
+	public boolean isActive(ClientPlayerEntity p) {
+		if (mc.vrSettings.seated)
 			return false;
-		if(!mc.vrSettings.realisticSwimEnabled)
+		if (!mc.vrSettings.realisticSwimEnabled)
 			return false;
-		if(mc.currentScreen != null)
+		if (mc.currentScreen != null)
 			return false;
-		if(p==null || !p.isAlive())
+		if (p == null || !p.isAlive())
 			return false;
-		if(mc.playerController == null) return false;
-		if(!p.isInWater() && !p.isInLava())
+		if (mc.playerController == null) return false;
+		if (!p.isInWater() && !p.isInLava())
 			return false;
-		if(p.moveForward > 0)
+		if (p.moveForward > 0)
 			return false;
-		if(p.moveStrafing > 0)
+		if (p.moveStrafing > 0)
 			return false;
 		return true;
 	}
 
-	public void doProcess(ClientPlayerEntity player){
+	boolean isHandInWater(VRData.VRDevicePose hand) {
+		return mc.world.containsAnyLiquid(new AxisAlignedBB(new BlockPos(hand.getPosition())));
+	}
+
+	/**
+	 * How much of the player is in water.
+	 * 0 for completely dry, 1 for completely submerged
+	 */
+	public double getBodyInWaterAmount() {
+		return 0;
+	}
+
+	static int flavor = 0;
+
+	public void doProcess(ClientPlayerEntity player) {
+
+
+
+//LEGACY:
 
 //		{//float
 //			//remove bouyancy for now.
@@ -85,11 +114,14 @@ public class SwimTracker extends Tracker {
 //			}
 
 //		}
-		{//swim
+		if(flavor == 0){//swim
 
 			Vector3d controllerR= mc.vrPlayer.vrdata_world_pre.getController(0).getPosition();
 			Vector3d controllerL= mc.vrPlayer.vrdata_world_pre.getController(1).getPosition();
-			
+
+
+
+
 			Vector3d middle= controllerL.subtract(controllerR).scale(0.5).add(controllerR);
 
 			Vector3d hmdPos=mc.vrPlayer.vrdata_world_pre.getHeadPivot().subtract(0,0.3,0);
@@ -115,5 +147,39 @@ public class SwimTracker extends Tracker {
 			player.addVelocity(motion.x,motion.y,motion.z);
 			motion=motion.scale(friction);
 		}
+		else if(flavor == 1){
+			Debug d = Debug.get("swim");
+
+			Vector3d[] appliedForces = new Vector3d[]{ Vector3d.ZERO, Vector3d.ZERO};
+
+			VRData vrData = mc.vrPlayer.getVRDataWorld();
+			//for each hand
+			for (int i = 0; i < 2; i++) {
+				if(!isHandInWater(vrData.getHand(i))){
+					continue;
+				}
+
+				Vector3d handFwd = MCOpenVR.getHandRotation(i).transform(new Vector3(0, 0 ,-1)).toVector3d();
+				Vector3d handVelocity = MCOpenVR.controllerHistory[i].getVelocity(0.5);
+
+				double projectedSpeed = -handFwd.dotProduct(handVelocity);
+
+				if(projectedSpeed<0){
+					projectedSpeed = 0;
+				}
+
+				Vector3d projectedVel = handFwd.scale( projectedSpeed );
+
+				appliedForces[i] = projectedVel.scale(swimspeed * 0.05);
+			}
+
+
+			Vector3d finalVelocity = appliedForces[0].add(appliedForces[1]);
+			player.addVelocity(finalVelocity.x,finalVelocity.y,finalVelocity.z);
+
+			//TODO Finish
+		}
+
+
 	}
 }

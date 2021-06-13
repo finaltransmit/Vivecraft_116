@@ -1,0 +1,27 @@
+--- a/net/minecraft/client/renderer/texture/NativeImage.java
++++ b/net/minecraft/client/renderer/texture/NativeImage.java
+@@ -645,6 +645,24 @@
+         return this.size;
+     }
+ 
++    public void downloadFromFramebuffer(boolean p_downloadFromFramebuffer_1_)
++    {
++        this.checkImage();
++        this.pixelFormat.setGlPackAlignment();
++
++        if (p_downloadFromFramebuffer_1_)
++        {
++            GlStateManager.pixelTransfer(3357, Float.MAX_VALUE);
++        }
++
++        GlStateManager.readPixels(0, 0, this.width, this.height, this.pixelFormat.getGlFormat(), 5121, this.imagePointer);
++
++        if (p_downloadFromFramebuffer_1_)
++        {
++            GlStateManager.pixelTransfer(3357, 0.0F);
++        }
++    }
++
+     public static enum PixelFormat
+     {
+         RGBA(4, 6408, true, true, true, false, true, 0, 8, 16, 255, 24, true),

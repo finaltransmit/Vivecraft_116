@@ -20,6 +20,15 @@
  
  public class ItemStackTileEntityRenderer
  {
+@@ -59,7 +62,7 @@
+     private final BedTileEntity bed = new BedTileEntity();
+     private final ConduitTileEntity conduit = new ConduitTileEntity();
+     private final ShieldModel modelShield = new ShieldModel();
+-    private final TridentModel trident = new TridentModel();
++    public TridentModel trident = new TridentModel();
+ 
+     public void func_239207_a_(ItemStack stack, ItemCameraTransforms.TransformType p_239207_2_, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay)
+     {
 @@ -166,34 +169,54 @@
                  TileEntityRendererDispatcher.instance.renderItem(tileentity, p_renderRaw_2_, p_renderRaw_3_, p_renderRaw_4_, p_renderRaw_5_);
              }

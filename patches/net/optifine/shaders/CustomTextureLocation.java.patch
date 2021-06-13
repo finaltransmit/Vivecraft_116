@@ -1,0 +1,14 @@
+--- a/net/optifine/shaders/CustomTextureLocation.java
++++ b/net/optifine/shaders/CustomTextureLocation.java
+@@ -41,6 +41,11 @@
+         return this.texture;
+     }
+ 
++    public void reloadTexture()
++    {
++        this.texture = null;
++    }
++
+     public int getTextureId()
+     {
+         Texture texture = this.getTexture();

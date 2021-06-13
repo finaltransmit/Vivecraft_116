@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/gui/overlay/DebugOverlayGui.java
++++ b/net/minecraft/client/gui/overlay/DebugOverlayGui.java
+@@ -560,7 +560,7 @@
+         long k1 = NativeMemory.getImageAllocated();
+         String s = "Native: " + bytesToMb(i1) + "/" + bytesToMb(j1) + "+" + bytesToMb(k1) + "MB";
+         list.add(3, s);
+-        list.set(4, "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
++        list.set(4, "Allocation: " + MemoryMonitor.getAllocationRateAvgMb() + "MB/s");
+ 
+         if (Reflector.BrandingControl_getBrandings.exists())
+         {

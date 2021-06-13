@@ -1,0 +1,29 @@
+--- a/net/optifine/render/VertexBuilderWrapper.java
++++ b/net/optifine/render/VertexBuilderWrapper.java
+@@ -15,6 +15,11 @@
+         this.vertexBuilder = vertexBuilder;
+     }
+ 
++    public IVertexBuilder getVertexBuilder()
++    {
++        return this.vertexBuilder;
++    }
++
+     public void putSprite(TextureAtlasSprite sprite)
+     {
+         this.vertexBuilder.putSprite(sprite);
+@@ -69,4 +74,14 @@
+     {
+         return this.vertexBuilder.getRenderTypeBuffer();
+     }
++
++    public void setQuadVertexPositions(VertexPosition[] vps)
++    {
++        this.vertexBuilder.setQuadVertexPositions(vps);
++    }
++
++    public void setMidBlock(float mbx, float mby, float mbz)
++    {
++        this.vertexBuilder.setMidBlock(mbx, mby, mbz);
++    }
+ }

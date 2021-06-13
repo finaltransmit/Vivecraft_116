@@ -1,0 +1,20 @@
+--- a/com/mojang/realmsclient/client/RealmsClient.java
++++ b/com/mojang/realmsclient/client/RealmsClient.java
+@@ -88,12 +88,12 @@
+         field_224944_a = RealmsClient.Environment.LOCAL;
+     }
+ 
+-    public RealmsClient(String p_i242127_1_, String p_i242127_2_, Minecraft p_i242127_3_)
++    public RealmsClient(String p_i242128_1_, String p_i242128_2_, Minecraft p_i242128_3_)
+     {
+-        this.field_224947_d = p_i242127_1_;
+-        this.field_224948_e = p_i242127_2_;
+-        this.field_244732_f = p_i242127_3_;
+-        RealmsClientConfig.func_224896_a(p_i242127_3_.getProxy());
++        this.field_224947_d = p_i242128_1_;
++        this.field_224948_e = p_i242128_2_;
++        this.field_244732_f = p_i242128_3_;
++        RealmsClientConfig.func_224896_a(p_i242128_3_.getProxy());
+     }
+ 
+     public RealmsServerList func_224902_e() throws RealmsServiceException

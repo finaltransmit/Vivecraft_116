@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/renderer/tileentity/SignTileEntityRenderer.java
++++ b/net/minecraft/client/renderer/tileentity/SignTileEntityRenderer.java
+@@ -120,7 +120,7 @@
+             woodtype = WoodType.OAK;
+         }
+ 
+-        return Atlases.getSignMaterial(woodtype);
++        return Atlases.SIGN_MATERIALS.get(woodtype);
+     }
+ 
+     private static boolean isRenderText(SignTileEntity p_isRenderText_0_)

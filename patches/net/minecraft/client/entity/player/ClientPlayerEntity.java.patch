@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/entity/player/ClientPlayerEntity.java
 +++ b/net/minecraft/client/entity/player/ClientPlayerEntity.java
-@@ -1,11 +1,33 @@
+@@ -1,11 +1,34 @@
  package net.minecraft.client.entity.player;
  
  import com.google.common.collect.Lists;
@@ -24,6 +24,7 @@
 +import org.vivecraft.provider.MCOpenVR;
 +import org.vivecraft.render.VRFirstPersonArmSwing;
 +import org.vivecraft.settings.VRSettings;
++import org.vivecraft.utils.Debug;
 +import org.vivecraft.utils.external.jinfinadeck;
 +import org.vivecraft.utils.external.jkatvr;
 +
@@ -34,7 +35,7 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.BiomeSoundHandler;
  import net.minecraft.client.audio.BubbleColumnAmbientSoundHandler;
-@@ -23,6 +45,7 @@
+@@ -23,6 +46,7 @@
  import net.minecraft.client.gui.screen.JigsawScreen;
  import net.minecraft.client.gui.screen.Screen;
  import net.minecraft.client.gui.screen.inventory.ContainerScreen;
@@ -42,7 +43,7 @@
  import net.minecraft.client.network.play.ClientPlayNetHandler;
  import net.minecraft.client.util.ClientRecipeBook;
  import net.minecraft.client.world.ClientWorld;
-@@ -33,23 +56,15 @@
+@@ -33,23 +57,15 @@
  import net.minecraft.entity.item.BoatEntity;
  import net.minecraft.entity.item.minecart.AbstractMinecartEntity;
  import net.minecraft.inventory.EquipmentSlotType;
@@ -69,7 +70,7 @@
  import net.minecraft.particles.ParticleTypes;
  import net.minecraft.potion.Effect;
  import net.minecraft.potion.EffectInstance;
-@@ -72,11 +87,14 @@
+@@ -72,11 +88,14 @@
  import net.minecraft.util.math.AxisAlignedBB;
  import net.minecraft.util.math.BlockPos;
  import net.minecraft.util.math.MathHelper;
@@ -84,7 +85,7 @@
  
  public class ClientPlayerEntity extends AbstractClientPlayerEntity
  {
-@@ -132,6 +150,22 @@
+@@ -132,6 +151,22 @@
      public MovementInput movementInput;
      protected final Minecraft mc;
      protected int sprintToggleTimer;
@@ -107,7 +108,7 @@
      public int sprintingTicksLeft;
      public float renderArmYaw;
      public float renderArmPitch;
-@@ -163,6 +197,86 @@
+@@ -163,12 +198,93 @@
          this.ambientSoundHandlers.add(new BubbleColumnAmbientSoundHandler(this));
          this.ambientSoundHandlers.add(new BiomeSoundHandler(this, mc.getSoundHandler(), world.getBiomeManager()));
      }
@@ -194,7 +195,14 @@
  
      /**
       * Called when the entity is attacked.
-@@ -179,6 +293,8 @@
+      */
+     public boolean attackEntityFrom(DamageSource source, float amount)
+     {
++
+         return false;
+     }
+ 
+@@ -179,6 +295,8 @@
      {
      }
  
@@ -203,7 +211,7 @@
      public boolean startRiding(Entity entityIn, boolean force)
      {
          if (!super.startRiding(entityIn, force))
-@@ -198,7 +314,10 @@
+@@ -198,7 +316,10 @@
                  this.rotationYaw = entityIn.rotationYaw;
                  this.setRotationYawHead(entityIn.rotationYaw);
              }
@@ -215,7 +223,7 @@
              return true;
          }
      }
-@@ -207,6 +326,10 @@
+@@ -207,6 +328,10 @@
      {
          super.dismount();
          this.rowingBoat = false;
@@ -226,7 +234,7 @@
      }
  
      /**
-@@ -233,7 +356,11 @@
+@@ -233,7 +358,11 @@
          if (this.world.isBlockLoaded(new BlockPos(this.getPosX(), 0.0D, this.getPosZ())))
          {
              super.tick();
@@ -239,7 +247,7 @@
              if (this.isPassenger())
              {
                  this.connection.sendPacket(new CPlayerPacket.RotationPacket(this.rotationYaw, this.rotationPitch, this.onGround));
-@@ -304,29 +431,44 @@
+@@ -304,29 +433,44 @@
              boolean flag1 = d4 * d4 + d0 * d0 + d1 * d1 > 9.0E-4D || this.positionUpdateTicks >= 20;
              boolean flag2 = d2 != 0.0D || d3 != 0.0D;
  
@@ -306,7 +314,7 @@
              if (flag1)
              {
                  this.lastReportedPosX = this.getPosX();
-@@ -342,6 +484,13 @@
+@@ -342,6 +486,13 @@
              }
  
              this.prevOnGround = this.onGround;
@@ -320,7 +328,7 @@
              this.autoJumpEnabled = this.mc.gameSettings.autoJump;
          }
      }
-@@ -359,10 +508,31 @@
+@@ -359,10 +510,31 @@
      public void sendChatMessage(String message)
      {
          this.connection.sendPacket(new CChatMessagePacket(message));
@@ -352,7 +360,7 @@
          super.swingArm(hand);
          this.connection.sendPacket(new CAnimateHandPacket(hand));
      }
-@@ -640,7 +810,24 @@
+@@ -640,7 +812,24 @@
  
      public void playSound(SoundEvent soundIn, float volume, float pitch)
      {
@@ -378,8 +386,16 @@
      }
  
      public void playSound(SoundEvent p_213823_1_, SoundCategory p_213823_2_, float p_213823_3_, float p_213823_4_)
-@@ -823,6 +1010,9 @@
-         boolean flag2 = this.isUsingSwimmingAnimation();
+@@ -818,11 +1007,14 @@
+         }
+ 
+         this.handlePortalTeleportation();
+-        boolean flag = this.movementInput.jump;
+-        boolean flag1 = this.movementInput.sneaking;
+-        boolean flag2 = this.isUsingSwimmingAnimation();
++        boolean _lastTickJump = this.movementInput.jump;
++        boolean _lastTickSneak = this.movementInput.sneaking;
++        boolean _lastTickSwim = this.isUsingSwimmingAnimation();
          this.isCrouching = !this.abilities.isFlying && !this.isSwimming() && this.isPoseClear(Pose.CROUCHING) && (this.isSneaking() || !this.isSleeping() && !this.isPoseClear(Pose.STANDING));
          this.movementInput.tickMovement(this.isForcedDown());
 +        //Forge
@@ -388,7 +404,75 @@
          this.mc.getTutorial().handleMovement(this.movementInput);
  
          if (this.isHandActive() && !this.isPassenger())
-@@ -924,7 +1114,13 @@
+@@ -832,12 +1024,12 @@
+             this.sprintToggleTimer = 0;
+         }
+ 
+-        boolean flag3 = false;
++        boolean _isAutoJump = false;
+ 
+         if (this.autoJumpTime > 0)
+         {
+             --this.autoJumpTime;
+-            flag3 = true;
++            _isAutoJump = true;
+             this.movementInput.jump = true;
+         }
+ 
+@@ -849,14 +1041,14 @@
+             this.setPlayerOffsetMotion(this.getPosX() + (double)this.getWidth() * 0.35D, this.getPosZ() + (double)this.getWidth() * 0.35D);
+         }
+ 
+-        if (flag1)
++        if (_lastTickSneak)
+         {
+             this.sprintToggleTimer = 0;
+         }
+ 
+         boolean flag4 = (float)this.getFoodStats().getFoodLevel() > 6.0F || this.abilities.allowFlying;
+ 
+-        if ((this.onGround || this.canSwim()) && !flag1 && !flag2 && this.isUsingSwimmingAnimation() && !this.isSprinting() && flag4 && !this.isHandActive() && !this.isPotionActive(Effects.BLINDNESS))
++        if ((this.onGround || this.canSwim()) && !_lastTickSneak && !_lastTickSwim && this.isUsingSwimmingAnimation() && !this.isSprinting() && flag4 && !this.isHandActive() && !this.isPotionActive(Effects.BLINDNESS))
+         {
+             if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.isKeyDown())
+             {
+@@ -891,7 +1083,7 @@
+             }
+         }
+ 
+-        boolean flag7 = false;
++        boolean _isCreativeFly = false;
+ 
+         if (this.abilities.allowFlying)
+         {
+@@ -900,11 +1092,11 @@
+                 if (!this.abilities.isFlying)
+                 {
+                     this.abilities.isFlying = true;
+-                    flag7 = true;
++                    _isCreativeFly = true;
+                     this.sendPlayerAbilities();
+                 }
+             }
+-            else if (!flag && this.movementInput.jump && !flag3)
++            else if (!_lastTickJump && this.movementInput.jump && !_isAutoJump)
+             {
+                 if (this.flyToggleTimer == 0)
+                 {
+@@ -913,18 +1105,24 @@
+                 else if (!this.isSwimming())
+                 {
+                     this.abilities.isFlying = !this.abilities.isFlying;
+-                    flag7 = true;
++                    _isCreativeFly = true;
+                     this.sendPlayerAbilities();
+                     this.flyToggleTimer = 0;
+                 }
+             }
+         }
+ 
+-        if (this.movementInput.jump && !flag7 && !flag && !this.abilities.isFlying && !this.isPassenger() && !this.isOnLadder())
++        if ((this.movementInput.jump /* <VR> */ || (mc.flightTracker.wingsExtended(this) && this.getMotion().y < -0.2f )/* </VR> */) && !_isCreativeFly && !_lastTickJump && !this.abilities.isFlying && !this.isPassenger() && !this.isOnLadder())
          {
              ItemStack itemstack = this.getItemStackFromSlot(EquipmentSlotType.CHEST);
  
@@ -403,7 +487,29 @@
              {
                  this.connection.sendPacket(new CEntityActionPacket(this, CEntityActionPacket.Action.START_FALL_FLYING));
              }
-@@ -1013,6 +1209,9 @@
+@@ -982,18 +1180,18 @@
+                 }
+             }
+ 
+-            if (flag && !this.movementInput.jump)
++            if (_lastTickJump && !this.movementInput.jump)
+             {
+                 this.horseJumpPowerCounter = -10;
+                 ijumpingmount.setJumpPower(MathHelper.floor(this.getHorseJumpPower() * 100.0F));
+                 this.sendHorseJump();
+             }
+-            else if (!flag && this.movementInput.jump)
++            else if (!_lastTickJump && this.movementInput.jump)
+             {
+                 this.horseJumpPowerCounter = 0;
+                 this.horseJumpPower = 0.0F;
+             }
+-            else if (flag)
++            else if (_lastTickJump)
+             {
+                 ++this.horseJumpPowerCounter;
+ 
+@@ -1013,6 +1211,9 @@
          }
  
          super.livingTick();
@@ -413,7 +519,7 @@
  
          if (this.onGround && this.abilities.isFlying && !this.mc.playerController.isSpectatorMode())
          {
-@@ -1114,12 +1313,65 @@
+@@ -1114,12 +1315,65 @@
          return super.removeActivePotionEffect(potioneffectin);
      }
  
@@ -483,7 +589,7 @@
      }
  
      public boolean isAutoJumpEnabled()
-@@ -1137,13 +1389,17 @@
+@@ -1137,13 +1391,17 @@
              float f = this.getAIMoveSpeed();
              float f1 = (float)vector3d2.lengthSquared();
  
@@ -503,7 +609,7 @@
                  vector3d2 = new Vector3d((double)(f2 * f5 - f3 * f4), vector3d2.y, (double)(f3 * f5 + f2 * f4));
                  f1 = (float)vector3d2.lengthSquared();
  
-@@ -1345,4 +1601,405 @@
+@@ -1345,4 +1603,407 @@
              return super.getLeashPosition(partialTicks);
          }
      }
@@ -883,6 +989,8 @@
 +    			Minecraft.getInstance().vrPlayer.wfMode = 0.5f;
 +    			Minecraft.getInstance().vrPlayer.wfCount = 400;
 +    		}
++
++    		mc.hapticTracker.handleEat(p_213357_2_);
 +        }
 +        return super.onFoodEaten(p_213357_1_, p_213357_2_);  	
 +    }

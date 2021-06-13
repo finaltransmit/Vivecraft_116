@@ -1,0 +1,18 @@
+--- a/net/minecraft/realms/action/ConnectedToRealmsAction.java
++++ b/net/minecraft/realms/action/ConnectedToRealmsAction.java
+@@ -14,11 +14,11 @@
+     private final RealmsServer field_244784_d;
+     private final RealmsServerAddress field_238110_d_;
+ 
+-    public ConnectedToRealmsAction(Screen p_i242126_1_, RealmsServer p_i242126_2_, RealmsServerAddress p_i242126_3_)
++    public ConnectedToRealmsAction(Screen p_i242127_1_, RealmsServer p_i242127_2_, RealmsServerAddress p_i242127_3_)
+     {
+-        this.field_244784_d = p_i242126_2_;
+-        this.field_238110_d_ = p_i242126_3_;
+-        this.field_238109_c_ = new RealmsConnect(p_i242126_1_);
++        this.field_244784_d = p_i242127_2_;
++        this.field_238110_d_ = p_i242127_3_;
++        this.field_238109_c_ = new RealmsConnect(p_i242127_1_);
+     }
+ 
+     public void run()

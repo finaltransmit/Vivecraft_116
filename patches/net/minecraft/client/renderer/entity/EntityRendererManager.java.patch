@@ -13,6 +13,22 @@
  import net.minecraft.block.BlockRenderType;
  import net.minecraft.block.BlockState;
  import net.minecraft.client.GameSettings;
+@@ -31,7 +37,6 @@
+ import net.minecraft.entity.LivingEntity;
+ import net.minecraft.entity.MobEntity;
+ import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+-import net.minecraft.entity.boss.dragon.EnderDragonPartEntity;
+ import net.minecraft.resources.IReloadableResourceManager;
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.math.AxisAlignedBB;
+@@ -50,6 +55,7 @@
+ import net.optifine.EmissiveTextures;
+ import net.optifine.entity.model.CustomEntityModels;
+ import net.optifine.player.PlayerItemsLayer;
++import net.optifine.reflect.Reflector;
+ import net.optifine.shaders.Shaders;
+ 
+ public class EntityRendererManager
 @@ -58,6 +64,12 @@
      private final Map < EntityType, EntityRenderer> renderers = Maps.newHashMap();
      private final Map<String, PlayerRenderer> skinMap = Maps.newHashMap();
@@ -82,7 +98,42 @@
          }
          else
          {
-@@ -556,6 +606,44 @@
+@@ -353,21 +403,28 @@
+         {
+             float f = entityIn.getWidth() / 2.0F;
+             this.renderBoundingBox(matrixStackIn, bufferIn, entityIn, 1.0F, 1.0F, 1.0F);
++            boolean flag = entityIn instanceof EnderDragonEntity;
++
++            if (Reflector.IForgeEntity_isMultipartEntity.exists() && Reflector.IForgeEntity_getParts.exists())
++            {
++                flag = Reflector.callBoolean(entityIn, Reflector.IForgeEntity_isMultipartEntity);
++            }
+ 
+-            if (entityIn instanceof EnderDragonEntity)
++            if (flag)
+             {
+                 double d0 = -MathHelper.lerp((double)partialTicks, entityIn.lastTickPosX, entityIn.getPosX());
+                 double d1 = -MathHelper.lerp((double)partialTicks, entityIn.lastTickPosY, entityIn.getPosY());
+                 double d2 = -MathHelper.lerp((double)partialTicks, entityIn.lastTickPosZ, entityIn.getPosZ());
++                Entity[] aentity = (Entity[])(Reflector.IForgeEntity_getParts.exists() ? (Entity[])Reflector.call(entityIn, Reflector.IForgeEntity_getParts) : ((EnderDragonEntity)entityIn).getDragonParts());
+ 
+-                for (EnderDragonPartEntity enderdragonpartentity : ((EnderDragonEntity)entityIn).getDragonParts())
++                for (Entity entity : aentity)
+                 {
+                     matrixStackIn.push();
+-                    double d3 = d0 + MathHelper.lerp((double)partialTicks, enderdragonpartentity.lastTickPosX, enderdragonpartentity.getPosX());
+-                    double d4 = d1 + MathHelper.lerp((double)partialTicks, enderdragonpartentity.lastTickPosY, enderdragonpartentity.getPosY());
+-                    double d5 = d2 + MathHelper.lerp((double)partialTicks, enderdragonpartentity.lastTickPosZ, enderdragonpartentity.getPosZ());
++                    double d3 = d0 + MathHelper.lerp((double)partialTicks, entity.lastTickPosX, entity.getPosX());
++                    double d4 = d1 + MathHelper.lerp((double)partialTicks, entity.lastTickPosY, entity.getPosY());
++                    double d5 = d2 + MathHelper.lerp((double)partialTicks, entity.lastTickPosZ, entity.getPosZ());
+                     matrixStackIn.translate(d3, d4, d5);
+-                    this.renderBoundingBox(matrixStackIn, bufferIn, enderdragonpartentity, 0.25F, 1.0F, 0.0F);
++                    this.renderBoundingBox(matrixStackIn, bufferIn, entity, 0.25F, 1.0F, 0.0F);
+                     matrixStackIn.pop();
+                 }
+             }
+@@ -556,6 +613,44 @@
  
      public Quaternion getCameraOrientation()
      {

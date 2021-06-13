@@ -1,0 +1,28 @@
+--- a/net/minecraft/util/text/filter/ChatFilterClient.java
++++ b/net/minecraft/util/text/filter/ChatFilterClient.java
+@@ -207,9 +207,9 @@
+ 
+     public static class ConnectionException extends RuntimeException
+     {
+-        private ConnectionException(String p_i242137_1_)
++        private ConnectionException(String p_i242138_1_)
+         {
+-            super(p_i242137_1_);
++            super(p_i242138_1_);
+         }
+     }
+ 
+@@ -233,10 +233,10 @@
+         private final GameProfile field_244585_b;
+         private final Executor field_244586_c;
+ 
+-        private ProfileFilter(GameProfile p_i242143_2_)
++        private ProfileFilter(GameProfile p_i242144_2_)
+         {
+-            this.field_244585_b = p_i242143_2_;
+-            DelegatedTaskExecutor<Runnable> delegatedtaskexecutor = DelegatedTaskExecutor.create(ChatFilterClient.this.field_244559_k, "chat stream for " + p_i242143_2_.getName());
++            this.field_244585_b = p_i242144_2_;
++            DelegatedTaskExecutor<Runnable> delegatedtaskexecutor = DelegatedTaskExecutor.create(ChatFilterClient.this.field_244559_k, "chat stream for " + p_i242144_2_.getName());
+             this.field_244586_c = delegatedtaskexecutor::enqueue;
+         }
+ 

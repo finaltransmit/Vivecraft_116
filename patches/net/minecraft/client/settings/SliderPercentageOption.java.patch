@@ -1,0 +1,72 @@
+--- a/net/minecraft/client/settings/SliderPercentageOption.java
++++ b/net/minecraft/client/settings/SliderPercentageOption.java
+@@ -1,5 +1,6 @@
+ package net.minecraft.client.settings;
+ 
++import java.util.Arrays;
+ import java.util.function.BiConsumer;
+ import java.util.function.BiFunction;
+ import java.util.function.Function;
+@@ -9,6 +10,7 @@
+ import net.minecraft.client.gui.widget.Widget;
+ import net.minecraft.util.math.MathHelper;
+ import net.minecraft.util.text.ITextComponent;
++import net.optifine.Config;
+ 
+ public class SliderPercentageOption extends AbstractOption
+ {
+@@ -18,6 +20,7 @@
+     protected Function<GameSettings, Double> getter;
+     protected BiConsumer<GameSettings, Double> setter;
+     protected BiFunction<GameSettings, SliderPercentageOption, ITextComponent> getDisplayStringFunc;
++    protected double[] stepValues;
+ 
+     public SliderPercentageOption(String translationKey, double minValueIn, double maxValueIn, float stepSizeIn, Function<GameSettings, Double> getter, BiConsumer<GameSettings, Double> setter, BiFunction<GameSettings, SliderPercentageOption, ITextComponent> getDisplayString)
+     {
+@@ -30,6 +33,24 @@
+         this.getDisplayStringFunc = getDisplayString;
+     }
+ 
++    public SliderPercentageOption(String p_i242103_1_, double p_i242103_2_, double p_i242103_4_, double[] p_i242103_6_, Function<GameSettings, Double> p_i242103_7_, BiConsumer<GameSettings, Double> p_i242103_8_, BiFunction<GameSettings, SliderPercentageOption, ITextComponent> p_i242103_9_)
++    {
++        super(p_i242103_1_);
++        this.minValue = p_i242103_2_;
++        this.maxValue = p_i242103_4_;
++        this.stepSize = 0.0F;
++        this.getter = p_i242103_7_;
++        this.setter = p_i242103_8_;
++        this.getDisplayStringFunc = p_i242103_9_;
++        this.stepValues = p_i242103_6_;
++
++        if (p_i242103_6_ != null)
++        {
++            p_i242103_6_ = (double[])p_i242103_6_.clone();
++            Arrays.sort(p_i242103_6_);
++        }
++    }
++
+     public Widget createWidget(GameSettings options, int xIn, int yIn, int widthIn)
+     {
+         return new OptionSlider(options, xIn, yIn, widthIn, 20, this);
+@@ -52,6 +73,21 @@
+             valueIn = (double)(this.stepSize * (float)Math.round(valueIn / (double)this.stepSize));
+         }
+ 
++        if (this.stepValues != null)
++        {
++            for (int i = 0; i < this.stepValues.length; ++i)
++            {
++                double d0 = i <= 0 ? -Double.MAX_VALUE : (this.stepValues[i - 1] + this.stepValues[i]) / 2.0D;
++                double d1 = i >= this.stepValues.length - 1 ? Double.MAX_VALUE : (this.stepValues[i] + this.stepValues[i + 1]) / 2.0D;
++
++                if (Config.between(valueIn, d0, d1))
++                {
++                    valueIn = this.stepValues[i];
++                    break;
++                }
++            }
++        }
++
+         return MathHelper.clamp(valueIn, this.minValue, this.maxValue);
+     }
+ 

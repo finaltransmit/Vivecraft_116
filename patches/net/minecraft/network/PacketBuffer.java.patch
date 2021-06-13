@@ -1,0 +1,16 @@
+--- a/net/minecraft/network/PacketBuffer.java
++++ b/net/minecraft/network/PacketBuffer.java
+@@ -51,10 +51,10 @@
+         this.buf = wrapped;
+     }
+ 
+-    public PacketBuffer(ByteBuf p_i242107_1_, Map<String, Object> p_i242107_2_)
++    public PacketBuffer(ByteBuf p_i242108_1_, Map<String, Object> p_i242108_2_)
+     {
+-        this.buf = p_i242107_1_;
+-        this.customData = p_i242107_2_;
++        this.buf = p_i242108_1_;
++        this.customData = p_i242108_2_;
+     }
+ 
+     /**

@@ -1,0 +1,295 @@
+--- a/net/minecraft/client/renderer/texture/TextureAtlasSprite.java
++++ b/net/minecraft/client/renderer/texture/TextureAtlasSprite.java
+@@ -63,15 +63,16 @@
+     public boolean isSpriteEmissive = false;
+     private int animationIndex = -1;
+     private boolean animationActive = false;
++    private boolean usesParentAnimationTime = false;
+     private boolean terrain;
+     private boolean shaders;
+     private boolean multiTexture;
+     private IResourceManager resourceManager;
+ 
+-    public TextureAtlasSprite(ResourceLocation p_i242113_1_)
++    public TextureAtlasSprite(ResourceLocation p_i242114_1_)
+     {
+         this.atlasTexture = null;
+-        this.spriteInfo = new TextureAtlasSprite.Info(p_i242113_1_, 0, 0, (AnimationMetadataSection)null);
++        this.spriteInfo = new TextureAtlasSprite.Info(p_i242114_1_, 0, 0, (AnimationMetadataSection)null);
+         this.animationMetadata = null;
+         this.frames = null;
+         this.framesX = new int[0];
+@@ -85,24 +86,25 @@
+         this.maxV = 0.0F;
+     }
+ 
+-    private TextureAtlasSprite(TextureAtlasSprite p_i242114_1_)
++    private TextureAtlasSprite(TextureAtlasSprite p_i242115_1_)
+     {
+-        this.atlasTexture = p_i242114_1_.atlasTexture;
+-        TextureAtlasSprite.Info textureatlassprite$info = p_i242114_1_.spriteInfo;
++        this.atlasTexture = p_i242115_1_.atlasTexture;
++        TextureAtlasSprite.Info textureatlassprite$info = p_i242115_1_.spriteInfo;
+         ResourceLocation resourcelocation = textureatlassprite$info.getSpriteLocation();
+         ResourceLocation resourcelocation1 = new ResourceLocation(resourcelocation.getNamespace(), resourcelocation.getPath() + ".sprite_single");
+         int i = textureatlassprite$info.getSpriteWidth();
+         int j = textureatlassprite$info.getSpriteHeight();
+         AnimationMetadataSection animationmetadatasection = textureatlassprite$info.getSpriteAnimationMetadata();
+         this.spriteInfo = new TextureAtlasSprite.Info(resourcelocation1, i, j, animationmetadatasection);
+-        this.animationMetadata = p_i242114_1_.animationMetadata;
+-        this.frames = p_i242114_1_.frames;
+-        this.framesX = p_i242114_1_.framesX;
+-        this.framesY = p_i242114_1_.framesY;
++        this.animationMetadata = p_i242115_1_.animationMetadata;
++        this.usesParentAnimationTime = true;
++        this.frames = p_i242115_1_.frames;
++        this.framesX = p_i242115_1_.framesX;
++        this.framesY = p_i242115_1_.framesY;
+ 
+-        if (p_i242114_1_.interpolationData != null)
++        if (p_i242115_1_.interpolationData != null)
+         {
+-            this.interpolationData = new TextureAtlasSprite.InterpolationData(p_i242114_1_.interpolationData.images);
++            this.interpolationData = new TextureAtlasSprite.InterpolationData(p_i242115_1_.interpolationData.images);
+         }
+         else
+         {
+@@ -115,17 +117,17 @@
+         this.maxU = 1.0F;
+         this.minV = 0.0F;
+         this.maxV = 1.0F;
+-        this.frameCounter = p_i242114_1_.frameCounter;
+-        this.tickCounter = p_i242114_1_.tickCounter;
+-        this.indexInMap = p_i242114_1_.indexInMap;
+-        this.baseU = p_i242114_1_.baseU;
+-        this.baseV = p_i242114_1_.baseV;
+-        this.sheetWidth = p_i242114_1_.sheetWidth;
+-        this.sheetHeight = p_i242114_1_.sheetHeight;
++        this.frameCounter = p_i242115_1_.frameCounter;
++        this.tickCounter = p_i242115_1_.tickCounter;
++        this.indexInMap = p_i242115_1_.indexInMap;
++        this.baseU = p_i242115_1_.baseU;
++        this.baseV = p_i242115_1_.baseV;
++        this.sheetWidth = p_i242115_1_.sheetWidth;
++        this.sheetHeight = p_i242115_1_.sheetHeight;
+         this.isSpriteSingle = true;
+-        this.mipmapLevels = p_i242114_1_.mipmapLevels;
+-        this.animationIndex = p_i242114_1_.animationIndex;
+-        this.animationActive = p_i242114_1_.animationActive;
++        this.mipmapLevels = p_i242115_1_.mipmapLevels;
++        this.animationIndex = p_i242115_1_.animationIndex;
++        this.animationActive = p_i242115_1_.animationActive;
+     }
+ 
+     protected TextureAtlasSprite(AtlasTexture atlasTextureIn, TextureAtlasSprite.Info spriteInfoIn, int mipmapLevelsIn, int atlasWidthIn, int atlasHeightIn, int xIn, int yIn, NativeImage imageIn)
+@@ -133,42 +135,42 @@
+         this(atlasTextureIn, spriteInfoIn, mipmapLevelsIn, atlasWidthIn, atlasHeightIn, xIn, yIn, imageIn, (ShadersTextureType)null);
+     }
+ 
+-    protected TextureAtlasSprite(AtlasTexture p_i242115_1_, TextureAtlasSprite.Info p_i242115_2_, int p_i242115_3_, int p_i242115_4_, int p_i242115_5_, int p_i242115_6_, int p_i242115_7_, NativeImage p_i242115_8_, ShadersTextureType p_i242115_9_)
++    protected TextureAtlasSprite(AtlasTexture p_i242116_1_, TextureAtlasSprite.Info p_i242116_2_, int p_i242116_3_, int p_i242116_4_, int p_i242116_5_, int p_i242116_6_, int p_i242116_7_, NativeImage p_i242116_8_, ShadersTextureType p_i242116_9_)
+     {
+-        this.atlasTexture = p_i242115_1_;
+-        AnimationMetadataSection animationmetadatasection = p_i242115_2_.spriteAnimationMetadata;
+-        int i = p_i242115_2_.spriteWidth;
+-        int j = p_i242115_2_.spriteHeight;
+-        this.x = p_i242115_6_;
+-        this.y = p_i242115_7_;
+-        this.minU = (float)p_i242115_6_ / (float)p_i242115_4_;
+-        this.maxU = (float)(p_i242115_6_ + i) / (float)p_i242115_4_;
+-        this.minV = (float)p_i242115_7_ / (float)p_i242115_5_;
+-        this.maxV = (float)(p_i242115_7_ + j) / (float)p_i242115_5_;
++        this.atlasTexture = p_i242116_1_;
++        AnimationMetadataSection animationmetadatasection = p_i242116_2_.spriteAnimationMetadata;
++        int i = p_i242116_2_.spriteWidth;
++        int j = p_i242116_2_.spriteHeight;
++        this.x = p_i242116_6_;
++        this.y = p_i242116_7_;
++        this.minU = (float)p_i242116_6_ / (float)p_i242116_4_;
++        this.maxU = (float)(p_i242116_6_ + i) / (float)p_i242116_4_;
++        this.minV = (float)p_i242116_7_ / (float)p_i242116_5_;
++        this.maxV = (float)(p_i242116_7_ + j) / (float)p_i242116_5_;
+ 
+-        if (p_i242115_2_.scaleFactor > 1.0D)
++        if (p_i242116_2_.scaleFactor > 1.0D)
+         {
+-            int k = (int)Math.round((double)p_i242115_8_.getWidth() * p_i242115_2_.scaleFactor);
+-            NativeImage nativeimage = TextureUtils.scaleImage(p_i242115_8_, k);
++            int k = (int)Math.round((double)p_i242116_8_.getWidth() * p_i242116_2_.scaleFactor);
++            NativeImage nativeimage = TextureUtils.scaleImage(p_i242116_8_, k);
+ 
+-            if (nativeimage != p_i242115_8_)
++            if (nativeimage != p_i242116_8_)
+             {
+-                p_i242115_8_.close();
+-                p_i242115_8_ = nativeimage;
++                p_i242116_8_.close();
++                p_i242116_8_ = nativeimage;
+             }
+         }
+ 
+-        this.spriteShadersType = p_i242115_9_;
++        this.spriteShadersType = p_i242116_9_;
+         IColorBlender icolorblender = this.atlasTexture.getShadersColorBlender(this.spriteShadersType);
+ 
+-        if (this.spriteShadersType == null && !p_i242115_2_.getSpriteLocation().getPath().endsWith("_leaves"))
++        if (this.spriteShadersType == null && !p_i242116_2_.getSpriteLocation().getPath().endsWith("_leaves"))
+         {
+-            this.fixTransparentColor(p_i242115_8_);
++            this.fixTransparentColor(p_i242116_8_);
+         }
+ 
+-        NativeImage nativeimage1 = p_i242115_8_;
+-        int l = p_i242115_8_.getWidth() / animationmetadatasection.getFrameWidth(i);
+-        int i1 = p_i242115_8_.getHeight() / animationmetadatasection.getFrameHeight(j);
++        NativeImage nativeimage1 = p_i242116_8_;
++        int l = p_i242116_8_.getWidth() / animationmetadatasection.getFrameWidth(i);
++        int i1 = p_i242116_8_.getHeight() / animationmetadatasection.getFrameHeight(j);
+ 
+         if (animationmetadatasection.getFrameCount() > 0)
+         {
+@@ -212,14 +214,14 @@
+             animationmetadatasection = new AnimationMetadataSection(list, i, j, animationmetadatasection.getFrameTime(), animationmetadatasection.isInterpolate());
+         }
+ 
+-        this.spriteInfo = new TextureAtlasSprite.Info(p_i242115_2_.spriteLocation, i, j, animationmetadatasection);
++        this.spriteInfo = new TextureAtlasSprite.Info(p_i242116_2_.spriteLocation, i, j, animationmetadatasection);
+         this.animationMetadata = animationmetadatasection;
+ 
+         try
+         {
+             try
+             {
+-                this.frames = MipmapGenerator.generateMipmaps(p_i242115_8_, p_i242115_3_, icolorblender);
++                this.frames = MipmapGenerator.generateMipmaps(p_i242116_8_, p_i242116_3_, icolorblender);
+             }
+             catch (Throwable throwable)
+             {
+@@ -256,24 +258,24 @@
+             {
+                 return this.getFrameCount() + " frames";
+             });
+-            crashreportcategory.addDetail("Mipmap levels", p_i242115_3_);
++            crashreportcategory.addDetail("Mipmap levels", p_i242116_3_);
+             throw new ReportedException(crashreport);
+         }
+ 
+         if (animationmetadatasection.isInterpolate())
+         {
+-            this.interpolationData = new TextureAtlasSprite.InterpolationData(p_i242115_2_, p_i242115_3_);
++            this.interpolationData = new TextureAtlasSprite.InterpolationData(p_i242116_2_, p_i242116_3_);
+         }
+         else
+         {
+             this.interpolationData = null;
+         }
+ 
+-        this.mipmapLevels = p_i242115_3_;
++        this.mipmapLevels = p_i242116_3_;
+         this.baseU = Math.min(this.minU, this.maxU);
+         this.baseV = Math.min(this.minV, this.maxV);
+-        this.sheetWidth = p_i242115_4_;
+-        this.sheetHeight = p_i242115_5_;
++        this.sheetWidth = p_i242116_4_;
++        this.sheetHeight = p_i242116_5_;
+     }
+ 
+     private void uploadFrames(int index)
+@@ -444,12 +446,24 @@
+                 this.animationActive = false;
+             }
+ 
+-            if (this.spriteSingle != null)
++            if (this.spriteSingle != null && this.spriteSingle.usesParentAnimationTime)
+             {
+                 this.spriteSingle.tickCounter = this.tickCounter;
+                 this.spriteSingle.frameCounter = this.frameCounter;
+             }
+ 
++            if (this.spriteNormal != null && this.spriteNormal.usesParentAnimationTime)
++            {
++                this.spriteNormal.tickCounter = this.tickCounter;
++                this.spriteNormal.frameCounter = this.frameCounter;
++            }
++
++            if (this.spriteSpecular != null && this.spriteSpecular.usesParentAnimationTime)
++            {
++                this.spriteSpecular.tickCounter = this.tickCounter;
++                this.spriteSpecular.frameCounter = this.frameCounter;
++            }
++
+             ++this.tickCounter;
+ 
+             if (this.tickCounter >= this.animationMetadata.getFrameTimeSingle(this.frameCounter))
+@@ -721,7 +735,7 @@
+         return textureatlassprite;
+     }
+ 
+-    public TextureAtlasSprite makeSpriteShaders(ShadersTextureType p_makeSpriteShaders_1_, int p_makeSpriteShaders_2_)
++    public TextureAtlasSprite makeSpriteShaders(ShadersTextureType p_makeSpriteShaders_1_, int p_makeSpriteShaders_2_, AnimationMetadataSection p_makeSpriteShaders_3_)
+     {
+         String s = p_makeSpriteShaders_1_.getSuffix();
+         ResourceLocation resourcelocation = new ResourceLocation(this.getName().getNamespace(), this.getName().getPath() + s);
+@@ -779,6 +793,7 @@
+             textureatlassprite.spriteSingle = textureatlassprite.makeSpriteSingle();
+         }
+ 
++        textureatlassprite.usesParentAnimationTime = matchesTiming(textureatlassprite.animationMetadata, p_makeSpriteShaders_3_);
+         return textureatlassprite;
+     }
+ 
+@@ -833,13 +848,52 @@
+         {
+             if (this.spriteNormal == null && Shaders.configNormalMap)
+             {
+-                this.spriteNormal = this.makeSpriteShaders(ShadersTextureType.NORMAL, -8421377);
++                this.spriteNormal = this.makeSpriteShaders(ShadersTextureType.NORMAL, -8421377, this.animationMetadata);
+             }
+ 
+             if (this.spriteSpecular == null && Shaders.configSpecularMap)
+             {
+-                this.spriteSpecular = this.makeSpriteShaders(ShadersTextureType.SPECULAR, 0);
++                this.spriteSpecular = this.makeSpriteShaders(ShadersTextureType.SPECULAR, 0, this.animationMetadata);
++            }
++        }
++    }
++
++    private static boolean matchesTiming(AnimationMetadataSection p_matchesTiming_0_, AnimationMetadataSection p_matchesTiming_1_)
++    {
++        if (p_matchesTiming_0_ == p_matchesTiming_1_)
++        {
++            return true;
++        }
++        else if (p_matchesTiming_0_ != null && p_matchesTiming_1_ != null)
++        {
++            if (p_matchesTiming_0_.getFrameTime() != p_matchesTiming_1_.getFrameTime())
++            {
++                return false;
+             }
++            else if (p_matchesTiming_0_.isInterpolate() != p_matchesTiming_1_.isInterpolate())
++            {
++                return false;
++            }
++            else if (p_matchesTiming_0_.getFrameCount() != p_matchesTiming_1_.getFrameCount())
++            {
++                return false;
++            }
++            else
++            {
++                for (int i = 0; i < p_matchesTiming_0_.getFrameCount(); ++i)
++                {
++                    if (p_matchesTiming_0_.getFrameTimeSingle(i) != p_matchesTiming_1_.getFrameTimeSingle(i))
++                    {
++                        return false;
++                    }
++                }
++
++                return true;
++            }
++        }
++        else
++        {
++            return false;
+         }
+     }
+ 

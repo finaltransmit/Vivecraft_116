@@ -1,0 +1,14 @@
+--- a/net/optifine/entity/model/ModelAdapter.java
++++ b/net/optifine/entity/model/ModelAdapter.java
+@@ -30,6 +30,11 @@
+         this(Either.makeRight(tileEntityType), name, shadowSize, (String[])null);
+     }
+ 
++    public ModelAdapter(TileEntityType tileEntityType, String name, float shadowSize, String[] aliases)
++    {
++        this(Either.makeRight(tileEntityType), name, shadowSize, aliases);
++    }
++
+     public ModelAdapter(Either<EntityType, TileEntityType> type, String name, float shadowSize, String[] aliases)
+     {
+         this.type = type;

@@ -1,0 +1,63 @@
+--- a/net/optifine/EmissiveTextures.java
++++ b/net/optifine/EmissiveTextures.java
+@@ -63,30 +63,38 @@
+         else
+         {
+             Texture texture = textureManager.getTexture(locationIn);
+-            ResourceLocation resourcelocation = null;
+ 
+-            if (texture instanceof SimpleTexture)
++            if (texture instanceof AtlasTexture)
+             {
+-                resourcelocation = ((SimpleTexture)texture).locationEmissive;
++                return locationIn;
+             }
+-
+-            if (!renderEmissive)
++            else
+             {
+-                if (resourcelocation != null)
++                ResourceLocation resourcelocation = null;
++
++                if (texture instanceof SimpleTexture)
+                 {
+-                    hasEmissive = true;
++                    resourcelocation = ((SimpleTexture)texture).locationEmissive;
+                 }
+ 
+-                return locationIn;
+-            }
+-            else
+-            {
+-                if (resourcelocation == null)
++                if (!renderEmissive)
+                 {
+-                    resourcelocation = LOCATION_TEXTURE_EMPTY;
++                    if (resourcelocation != null)
++                    {
++                        hasEmissive = true;
++                    }
++
++                    return locationIn;
+                 }
++                else
++                {
++                    if (resourcelocation == null)
++                    {
++                        resourcelocation = LOCATION_TEXTURE_EMPTY;
++                    }
+ 
+-                return resourcelocation;
++                    return resourcelocation;
++                }
+             }
+         }
+     }
+@@ -155,7 +163,6 @@
+ 
+     public static void beginRenderEmissive()
+     {
+-        RenderUtils.flushRenderBuffers();
+         renderEmissive = true;
+     }
+ 

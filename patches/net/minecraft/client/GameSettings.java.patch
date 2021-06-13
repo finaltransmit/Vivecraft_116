@@ -1,6 +1,14 @@
 --- a/net/minecraft/client/GameSettings.java
 +++ b/net/minecraft/client/GameSettings.java
-@@ -69,6 +69,7 @@
+@@ -62,6 +62,7 @@
+ import net.optifine.Lang;
+ import net.optifine.NaturalTextures;
+ import net.optifine.RandomEntities;
++import net.optifine.config.FloatOptions;
+ import net.optifine.reflect.Reflector;
+ import net.optifine.shaders.Shaders;
+ import net.optifine.util.FontUtils;
+@@ -69,6 +70,7 @@
  import org.apache.commons.lang3.ArrayUtils;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -8,7 +16,7 @@
  
  public class GameSettings
  {
-@@ -186,6 +187,7 @@
+@@ -186,6 +188,7 @@
      public float fovScaleEffect = 1.0F;
      public double gamma;
      public int guiScale;
@@ -16,7 +24,7 @@
      public ParticleStatus particles = ParticleStatus.ALL;
      public NarratorStatus narrator = NarratorStatus.OFF;
      public String language = "en_us";
-@@ -197,7 +199,7 @@
+@@ -197,7 +200,7 @@
      public boolean ofSmoothFps = false;
      public boolean ofSmoothWorld = Config.isSingleProcessor();
      public boolean ofLazyChunkLoading = Config.isSingleProcessor();
@@ -25,7 +33,7 @@
      public boolean ofSmartAnimations = false;
      public double ofAoLevel = 1.0D;
      public int ofAaLevel = 0;
-@@ -236,7 +238,7 @@
+@@ -236,7 +239,7 @@
      public int ofTranslucentBlocks = 0;
      public boolean ofDynamicFov = true;
      public boolean ofAlternateBlocks = true;
@@ -34,7 +42,7 @@
      public boolean ofCustomEntityModels = true;
      public boolean ofCustomGuis = true;
      public boolean ofShowGlErrors = true;
-@@ -310,6 +312,9 @@
+@@ -310,6 +313,9 @@
          this.ofKeyBindZoom = new KeyBinding("of.key.zoom", 67, "key.categories.misc");
          this.keyBindings = ArrayUtils.add(this.keyBindings, this.ofKeyBindZoom);
          KeyUtils.fixKeyConflicts(this.keyBindings, new KeyBinding[] {this.ofKeyBindZoom});
@@ -44,7 +52,7 @@
          this.renderDistanceChunks = 8;
          this.loadOptions();
          Config.initGameSettings(this);
-@@ -525,7 +530,7 @@
+@@ -525,7 +531,7 @@
  
                      if ("guiScale".equals(s))
                      {
@@ -53,7 +61,7 @@
                      }
  
                      if ("particles".equals(s))
-@@ -905,7 +910,7 @@
+@@ -905,7 +911,7 @@
                  printwriter.println("gamma:" + this.gamma);
                  printwriter.println("renderDistance:" + this.renderDistanceChunks);
                  printwriter.println("entityDistanceScaling:" + this.entityDistanceScaling);
@@ -62,16 +70,51 @@
                  printwriter.println("particles:" + this.particles.getId());
                  printwriter.println("maxFps:" + this.framerateLimit);
                  printwriter.println("difficulty:" + this.difficulty.getId());
-@@ -1113,7 +1118,7 @@
-             {
-                 if (i >= aint[j])
-                 {
--                    this.ofAaLevel = aint[j];
-+                    this.ofAaLevel = 0; //Vivecraft aint[j];
-                 }
+@@ -1106,36 +1112,24 @@
+                 return;
              }
  
-@@ -1548,7 +1553,7 @@
+-            int[] aint = new int[] {0, 2, 4, 6, 8, 12, 16};
+-            this.ofAaLevel = 0;
+-
+-            for (int j = 0; j < aint.length; ++j)
+-            {
+-                if (i >= aint[j])
+-                {
+-                    this.ofAaLevel = aint[j];
+-                }
+-            }
+-
++            this.ofAaLevel = i;
+             this.ofAaLevel = Config.limit(this.ofAaLevel, 0, 16);
++            this.ofAaLevel = 0; //Vivecraft no.
+         }
+ 
+         if (p_setOptionFloatValueOF_1_ == AbstractOption.AF_LEVEL)
+         {
+-            int k = (int)p_setOptionFloatValueOF_2_;
+-
+-            for (this.ofAfLevel = 1; this.ofAfLevel * 2 <= k; this.ofAfLevel *= 2)
+-            {
+-            }
+-
++            int j = (int)p_setOptionFloatValueOF_2_;
++            this.ofAfLevel = j;
+             this.ofAfLevel = Config.limit(this.ofAfLevel, 1, 16);
+             this.mc.scheduleResourcesRefresh();
++            Shaders.uninit();
+         }
+ 
+         if (p_setOptionFloatValueOF_1_ == AbstractOption.MIPMAP_TYPE)
+         {
+-            int l = (int)p_setOptionFloatValueOF_2_;
+-            this.ofMipmapType = Config.limit(l, 0, 3);
++            int k = (int)p_setOptionFloatValueOF_2_;
++            this.ofMipmapType = Config.limit(k, 0, 3);
+             this.updateMipmaps();
+         }
+     }
+@@ -1548,7 +1542,7 @@
  
          if (p_setOptionValueOF_1_ == AbstractOption.FAST_RENDER)
          {
@@ -80,7 +123,114 @@
          }
  
          if (p_setOptionValueOF_1_ == AbstractOption.TRANSLUCENT_BLOCKS)
-@@ -2643,6 +2648,13 @@
+@@ -1685,51 +1679,51 @@
+         if (p_getKeyBindingOF_1_ == AbstractOption.RENDER_DISTANCE)
+         {
+             int i1 = (int)AbstractOption.RENDER_DISTANCE.get(this);
+-            String s3 = I18n.format("of.options.renderDistance.tiny");
++            String s2 = I18n.format("of.options.renderDistance.tiny");
+             int i = 2;
+ 
+             if (i1 >= 4)
+             {
+-                s3 = I18n.format("of.options.renderDistance.short");
++                s2 = I18n.format("of.options.renderDistance.short");
+                 i = 4;
+             }
+ 
+             if (i1 >= 8)
+             {
+-                s3 = I18n.format("of.options.renderDistance.normal");
++                s2 = I18n.format("of.options.renderDistance.normal");
+                 i = 8;
+             }
+ 
+             if (i1 >= 16)
+             {
+-                s3 = I18n.format("of.options.renderDistance.far");
++                s2 = I18n.format("of.options.renderDistance.far");
+                 i = 16;
+             }
+ 
+             if (i1 >= 32)
+             {
+-                s3 = Lang.get("of.options.renderDistance.extreme");
++                s2 = Lang.get("of.options.renderDistance.extreme");
+                 i = 32;
+             }
+ 
+             if (i1 >= 48)
+             {
+-                s3 = Lang.get("of.options.renderDistance.insane");
++                s2 = Lang.get("of.options.renderDistance.insane");
+                 i = 48;
+             }
+ 
+             if (i1 >= 64)
+             {
+-                s3 = Lang.get("of.options.renderDistance.ludicrous");
++                s2 = Lang.get("of.options.renderDistance.ludicrous");
+                 i = 64;
+             }
+ 
+             int j = this.renderDistanceChunks - i;
+-            String s1 = s3;
++            String s1 = s2;
+ 
+             if (j > 0)
+             {
+-                s1 = s3 + "+";
++                s1 = s2 + "+";
+             }
+ 
+             return s + i1 + " " + s1 + "";
+@@ -1757,23 +1751,7 @@
+         }
+         else if (p_getKeyBindingOF_1_ == AbstractOption.MIPMAP_TYPE)
+         {
+-            switch (this.ofMipmapType)
+-            {
+-                case 0:
+-                    return s + Lang.get("of.options.mipmap.nearest");
+-
+-                case 1:
+-                    return s + Lang.get("of.options.mipmap.linear");
+-
+-                case 2:
+-                    return s + Lang.get("of.options.mipmap.bilinear");
+-
+-                case 3:
+-                    return s + Lang.get("of.options.mipmap.trilinear");
+-
+-                default:
+-                    return s + "of.options.mipmap.nearest";
+-            }
++            return FloatOptions.getText(p_getKeyBindingOF_1_, (double)this.ofMipmapType);
+         }
+         else if (p_getKeyBindingOF_1_ == AbstractOption.SMOOTH_FPS)
+         {
+@@ -2049,18 +2027,11 @@
+         }
+         else if (p_getKeyBindingOF_1_ == AbstractOption.AA_LEVEL)
+         {
+-            String s2 = "";
+-
+-            if (this.ofAaLevel != Config.getAntialiasingLevel())
+-            {
+-                s2 = " (" + Lang.get("of.general.restart") + ")";
+-            }
+-
+-            return this.ofAaLevel == 0 ? s + Lang.getOff() + s2 : s + this.ofAaLevel + s2;
++            return FloatOptions.getText(p_getKeyBindingOF_1_, (double)this.ofAaLevel);
+         }
+         else if (p_getKeyBindingOF_1_ == AbstractOption.AF_LEVEL)
+         {
+-            return this.ofAfLevel == 1 ? s + Lang.getOff() : s + this.ofAfLevel;
++            return FloatOptions.getText(p_getKeyBindingOF_1_, (double)this.ofAfLevel);
+         }
+         else if (p_getKeyBindingOF_1_ == AbstractOption.PROFILER)
+         {
+@@ -2643,6 +2614,13 @@
              KeyUtils.fixKeyConflicts(this.keyBindings, new KeyBinding[] {this.ofKeyBindZoom});
              KeyBinding.resetKeyBindingArrayAndHash();
              bufferedreader.close();
@@ -94,7 +244,7 @@
          }
          catch (Exception exception11)
          {
-@@ -2793,7 +2805,7 @@
+@@ -2793,7 +2771,7 @@
          this.cloudOption = CloudOption.FANCY;
          this.fov = 70.0D;
          this.gamma = 0.0D;
@@ -103,7 +253,7 @@
          this.particles = ParticleStatus.ALL;
          this.heldItemTooltips = true;
          this.forceUnicodeFont = false;
-@@ -2806,7 +2818,7 @@
+@@ -2806,7 +2784,7 @@
          Config.updateAvailableProcessors();
          this.ofSmoothWorld = Config.isSingleProcessor();
          this.ofLazyChunkLoading = false;
@@ -112,7 +262,7 @@
          this.ofFastMath = false;
          this.ofFastRender = false;
          this.ofTranslucentBlocks = 0;
-@@ -3036,3 +3048,4 @@
+@@ -3036,3 +3014,4 @@
          this.pointOfView = pointOfView;
      }
  }

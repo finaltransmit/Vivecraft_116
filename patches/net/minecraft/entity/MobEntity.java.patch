@@ -1,0 +1,26 @@
+--- a/net/minecraft/entity/MobEntity.java
++++ b/net/minecraft/entity/MobEntity.java
+@@ -26,6 +26,7 @@
+ import net.minecraft.entity.item.HangingEntity;
+ import net.minecraft.entity.item.ItemEntity;
+ import net.minecraft.entity.item.LeashKnotEntity;
++import net.minecraft.entity.monster.AbstractRaiderEntity;
+ import net.minecraft.entity.monster.IMob;
+ import net.minecraft.entity.monster.MonsterEntity;
+ import net.minecraft.entity.player.PlayerEntity;
+@@ -2061,13 +2062,12 @@
+         if (this instanceof MonsterEntity)
+         {
+             float f = this.getBrightness();
++            boolean flag = this instanceof AbstractRaiderEntity;
+ 
+-            if (f > 0.5F)
++            if (f > 0.5F || flag)
+             {
+                 this.idleTime += 2;
+             }
+         }
+-
+-        this.checkDespawn();
+     }
+ }

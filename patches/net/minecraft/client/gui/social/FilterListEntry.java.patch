@@ -1,0 +1,80 @@
+--- a/net/minecraft/client/gui/social/FilterListEntry.java
++++ b/net/minecraft/client/gui/social/FilterListEntry.java
+@@ -49,31 +49,31 @@
+     public static final int field_244619_d = ColorHelper.PackedColor.packColor(255, 255, 255, 255);
+     public static final int field_244741_e = ColorHelper.PackedColor.packColor(140, 255, 255, 255);
+ 
+-    public FilterListEntry(Minecraft p_i242128_1_, SocialInteractionsScreen p_i242128_2_, UUID p_i242128_3_, String p_i242128_4_, Supplier<ResourceLocation> p_i242128_5_)
++    public FilterListEntry(Minecraft p_i242129_1_, SocialInteractionsScreen p_i242129_2_, UUID p_i242129_3_, String p_i242129_4_, Supplier<ResourceLocation> p_i242129_5_)
+     {
+-        this.field_244620_e = p_i242128_1_;
+-        this.field_244622_g = p_i242128_3_;
+-        this.field_244623_h = p_i242128_4_;
+-        this.field_244742_j = p_i242128_5_;
+-        this.field_244628_m = p_i242128_1_.fontRenderer.trimStringToWidth(new TranslationTextComponent("gui.socialInteractions.tooltip.hide", p_i242128_4_), 150);
+-        this.field_244629_n = p_i242128_1_.fontRenderer.trimStringToWidth(new TranslationTextComponent("gui.socialInteractions.tooltip.show", p_i242128_4_), 150);
+-        FilterManager filtermanager = p_i242128_1_.func_244599_aA();
++        this.field_244620_e = p_i242129_1_;
++        this.field_244622_g = p_i242129_3_;
++        this.field_244623_h = p_i242129_4_;
++        this.field_244742_j = p_i242129_5_;
++        this.field_244628_m = p_i242129_1_.fontRenderer.trimStringToWidth(new TranslationTextComponent("gui.socialInteractions.tooltip.hide", p_i242129_4_), 150);
++        this.field_244629_n = p_i242129_1_.fontRenderer.trimStringToWidth(new TranslationTextComponent("gui.socialInteractions.tooltip.show", p_i242129_4_), 150);
++        FilterManager filtermanager = p_i242129_1_.func_244599_aA();
+ 
+-        if (!p_i242128_1_.player.getGameProfile().getId().equals(p_i242128_3_) && !filtermanager.func_244757_e(p_i242128_3_))
++        if (!p_i242129_1_.player.getGameProfile().getId().equals(p_i242129_3_) && !filtermanager.func_244757_e(p_i242129_3_))
+         {
+             this.field_244626_k = new ImageButton(0, 0, 20, 20, 0, 38, 20, SocialInteractionsScreen.field_244666_a, 256, 256, (p_244751_4_) ->
+             {
+-                filtermanager.func_244646_a(p_i242128_3_);
+-                this.func_244635_a(true, new TranslationTextComponent("gui.socialInteractions.hidden_in_chat", p_i242128_4_));
++                filtermanager.func_244646_a(p_i242129_3_);
++                this.func_244635_a(true, new TranslationTextComponent("gui.socialInteractions.hidden_in_chat", p_i242129_4_));
+             }, (p_244637_3_, p_244637_4_, p_244637_5_, p_244637_6_) ->
+             {
+-                this.field_244630_o += p_i242128_1_.getTickLength();
++                this.field_244630_o += p_i242129_1_.getTickLength();
+ 
+                 if (this.field_244630_o >= 10.0F)
+                 {
+-                    p_i242128_2_.func_244684_a(() ->
++                    p_i242129_2_.func_244684_a(() ->
+                     {
+-                        func_244634_a(p_i242128_2_, p_244637_4_, this.field_244628_m, p_244637_5_, p_244637_6_);
++                        func_244634_a(p_i242129_2_, p_244637_4_, this.field_244628_m, p_244637_5_, p_244637_6_);
+                     });
+                 }
+             }, new TranslationTextComponent("gui.socialInteractions.hide"))
+@@ -85,17 +85,17 @@
+             };
+             this.field_244627_l = new ImageButton(0, 0, 20, 20, 20, 38, 20, SocialInteractionsScreen.field_244666_a, 256, 256, (p_244749_4_) ->
+             {
+-                filtermanager.func_244647_b(p_i242128_3_);
+-                this.func_244635_a(false, new TranslationTextComponent("gui.socialInteractions.shown_in_chat", p_i242128_4_));
++                filtermanager.func_244647_b(p_i242129_3_);
++                this.func_244635_a(false, new TranslationTextComponent("gui.socialInteractions.shown_in_chat", p_i242129_4_));
+             }, (p_244631_3_, p_244631_4_, p_244631_5_, p_244631_6_) ->
+             {
+-                this.field_244630_o += p_i242128_1_.getTickLength();
++                this.field_244630_o += p_i242129_1_.getTickLength();
+ 
+                 if (this.field_244630_o >= 10.0F)
+                 {
+-                    p_i242128_2_.func_244684_a(() ->
++                    p_i242129_2_.func_244684_a(() ->
+                     {
+-                        func_244634_a(p_i242128_2_, p_244631_4_, this.field_244629_n, p_244631_5_, p_244631_6_);
++                        func_244634_a(p_i242129_2_, p_244631_4_, this.field_244629_n, p_244631_5_, p_244631_6_);
+                     });
+                 }
+             }, new TranslationTextComponent("gui.socialInteractions.show"))
+@@ -105,7 +105,7 @@
+                     return FilterListEntry.this.func_244750_a(super.getNarrationMessage());
+                 }
+             };
+-            this.field_244627_l.visible = filtermanager.func_244648_c(p_i242128_3_);
++            this.field_244627_l.visible = filtermanager.func_244648_c(p_i242129_3_);
+             this.field_244626_k.visible = !this.field_244627_l.visible;
+             this.field_244621_f = ImmutableList.of(this.field_244626_k, this.field_244627_l);
+         }

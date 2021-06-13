@@ -1,6 +1,14 @@
 --- a/net/minecraft/client/renderer/FluidBlockRenderer.java
 +++ b/net/minecraft/client/renderer/FluidBlockRenderer.java
-@@ -63,6 +63,7 @@
+@@ -27,6 +27,7 @@
+ import net.optifine.reflect.Reflector;
+ import net.optifine.render.RenderEnv;
+ import net.optifine.shaders.SVertexBuilder;
++import net.optifine.shaders.Shaders;
+ 
+ public class FluidBlockRenderer
+ {
+@@ -63,6 +64,7 @@
              return false;
          }
      }
@@ -8,7 +16,7 @@
  
      private static boolean func_239283_a_(IBlockReader p_239283_0_, BlockPos p_239283_1_, Direction p_239283_2_, float p_239283_3_)
      {
-@@ -148,11 +149,15 @@
+@@ -148,11 +150,15 @@
                  float f8 = this.getFluidHeight(lightReaderIn, posIn.south(), fluidStateIn.getFluid());
                  float f9 = this.getFluidHeight(lightReaderIn, posIn.east().south(), fluidStateIn.getFluid());
                  float f10 = this.getFluidHeight(lightReaderIn, posIn.east(), fluidStateIn.getFluid());
@@ -29,3 +37,15 @@
                  {
                      int j = posIn.getX() >> 4 << 4;
                      int k = posIn.getY() >> 4 << 4;
+@@ -167,6 +173,11 @@
+                     d2 += (double)i2;
+                 }
+ 
++                if (Config.isShaders() && Shaders.useMidBlockAttrib)
++                {
++                    vertexBuilderIn.setMidBlock((float)(d0 + 0.5D), (float)(d1 + 0.5D), (float)(d2 + 0.5D));
++                }
++
+                 float f29 = 0.001F;
+                 float f30 = flag1 ? 0.001F : 0.0F;
+ 

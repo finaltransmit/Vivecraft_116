@@ -1,0 +1,33 @@
+--- a/net/minecraft/util/ScreenShotHelper.java
++++ b/net/minecraft/util/ScreenShotHelper.java
+@@ -150,13 +150,23 @@
+ 
+     public static NativeImage createScreenshot(int width, int height, Framebuffer framebufferIn)
+     {
+-        width = framebufferIn.framebufferTextureWidth;
+-        height = framebufferIn.framebufferTextureHeight;
+-        NativeImage nativeimage = new NativeImage(width, height, false);
+-        RenderSystem.bindTexture(framebufferIn.func_242996_f());
+-        nativeimage.downloadFromTexture(0, true);
+-        nativeimage.flip();
+-        return nativeimage;
++        if (!GLX.isUsingFBOs())
++        {
++            NativeImage nativeimage1 = new NativeImage(width, height, false);
++            nativeimage1.downloadFromFramebuffer(true);
++            nativeimage1.flip();
++            return nativeimage1;
++        }
++        else
++        {
++            width = framebufferIn.framebufferTextureWidth;
++            height = framebufferIn.framebufferTextureHeight;
++            NativeImage nativeimage = new NativeImage(width, height, false);
++            RenderSystem.bindTexture(framebufferIn.func_242996_f());
++            nativeimage.downloadFromTexture(0, true);
++            nativeimage.flip();
++            return nativeimage;
++        }
+     }
+ 
+     /**

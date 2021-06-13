@@ -3,12 +3,14 @@ package org.vivecraft.gameplay;
 import java.util.ArrayList;
 import java.util.Random;
 
+import net.minecraft.util.math.vector.Vector2f;
 import org.vivecraft.api.NetworkHelper;
 import org.vivecraft.api.VRData;
 import org.vivecraft.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.gameplay.screenhandlers.RadialHandler;
 import org.vivecraft.gameplay.trackers.BowTracker;
+import org.vivecraft.gameplay.trackers.FlightTracker;
 import org.vivecraft.gameplay.trackers.Tracker;
 import org.vivecraft.gameplay.trackers.VehicleTracker;
 import org.vivecraft.provider.MCOpenVR;
@@ -38,6 +40,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
+import org.vivecraft.utils.math.Angle;
+import org.vivecraft.utils.math.Vector2;
 
 
 // VIVE
@@ -663,7 +667,16 @@ public class OpenVRPlayer
 				entity.rotationYawHead = entity.rotationYaw = data.hmd.getYaw();
 				entity.rotationPitch = -data.hmd.getPitch();
 			}
-		} 
+		}
+
+		if(mc.flightTracker.isActive(entity)){
+			if(mc.flightTracker.isLookOverridden(entity)) {
+				Angle look = mc.flightTracker.getLookDir();
+
+				entity.rotationPitch = look.getPitch();
+				entity.rotationYawHead = look.getYaw();
+			}
+		}
 
 		if(entity.isPassenger()) {
 			//needed for server side movement.

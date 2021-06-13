@@ -1,0 +1,74 @@
+--- a/net/minecraft/client/renderer/BufferBuilder.java
++++ b/net/minecraft/client/renderer/BufferBuilder.java
+@@ -27,6 +27,7 @@
+ import net.optifine.render.MultiTextureBuilder;
+ import net.optifine.render.MultiTextureData;
+ import net.optifine.render.RenderEnv;
++import net.optifine.render.VertexPosition;
+ import net.optifine.shaders.SVertexBuilder;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -67,6 +68,8 @@
+     private FloatBuffer floatBuffer;
+     private IRenderTypeBuffer.Impl renderTypeBuffer;
+     private FloatBuffer floatBufferSort;
++    private VertexPosition[] quadVertexPositions;
++    private Vector3f midBlock = new Vector3f();
+ 
+     public BufferBuilder(int bufferSizeIn)
+     {
+@@ -814,6 +817,26 @@
+         }
+     }
+ 
++    public void setQuadVertexPositions(VertexPosition[] p_setQuadVertexPositions_1_)
++    {
++        this.quadVertexPositions = p_setQuadVertexPositions_1_;
++    }
++
++    public VertexPosition[] getQuadVertexPositions()
++    {
++        return this.quadVertexPositions;
++    }
++
++    public void setMidBlock(float p_setMidBlock_1_, float p_setMidBlock_2_, float p_setMidBlock_3_)
++    {
++        this.midBlock.set(p_setMidBlock_1_, p_setMidBlock_2_, p_setMidBlock_3_);
++    }
++
++    public Vector3f getMidBlock()
++    {
++        return this.midBlock;
++    }
++
+     public void putBulkData(ByteBuffer p_putBulkData_1_)
+     {
+         if (Config.isShaders())
+@@ -855,10 +878,10 @@
+         private final int drawMode;
+         private MultiTextureData multiTextureData;
+ 
+-        private DrawState(VertexFormat p_i242108_1_, int p_i242108_2_, int p_i242108_3_, MultiTextureData p_i242108_4_)
++        private DrawState(VertexFormat p_i242109_1_, int p_i242109_2_, int p_i242109_3_, MultiTextureData p_i242109_4_)
+         {
+-            this(p_i242108_1_, p_i242108_2_, p_i242108_3_);
+-            this.multiTextureData = p_i242108_4_;
++            this(p_i242109_1_, p_i242109_2_, p_i242109_3_);
++            this.multiTextureData = p_i242109_4_;
+         }
+ 
+         public MultiTextureData getMultiTextureData()
+@@ -895,10 +918,10 @@
+         private final VertexFormat stateVertexFormat;
+         private TextureAtlasSprite[] stateQuadSprites;
+ 
+-        public State(ByteBuffer p_i242120_1_, VertexFormat p_i242120_2_, TextureAtlasSprite[] p_i242120_3_)
++        public State(ByteBuffer p_i242121_1_, VertexFormat p_i242121_2_, TextureAtlasSprite[] p_i242121_3_)
+         {
+-            this(p_i242120_1_, p_i242120_2_);
+-            this.stateQuadSprites = p_i242120_3_;
++            this(p_i242121_1_, p_i242121_2_);
++            this.stateQuadSprites = p_i242121_3_;
+         }
+ 
+         private State(ByteBuffer byteBufferIn, VertexFormat vertexFormatIn)

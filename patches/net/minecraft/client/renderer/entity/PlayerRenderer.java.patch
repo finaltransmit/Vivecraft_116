@@ -1,0 +1,21 @@
+--- a/net/minecraft/client/renderer/entity/PlayerRenderer.java
++++ b/net/minecraft/client/renderer/entity/PlayerRenderer.java
+@@ -1,6 +1,7 @@
+ package net.minecraft.client.renderer.entity;
+ 
+ import com.mojang.blaze3d.matrix.MatrixStack;
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
+ import net.minecraft.client.renderer.IRenderTypeBuffer;
+ import net.minecraft.client.renderer.RenderType;
+@@ -108,6 +109,10 @@
+                 playermodel.leftArmPose = bipedmodel$armpose;
+             }
+         }
++// Vivecraft
++        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.equals(clientPlayer)) {
++            playermodel.bipedHead.showModel = false;
++        }
+     }
+ 
+     private static BipedModel.ArmPose func_241741_a_(AbstractClientPlayerEntity p_241741_0_, Hand p_241741_1_)

@@ -1,0 +1,60 @@
+--- a/net/minecraft/client/renderer/tileentity/TileEntityRendererDispatcher.java
++++ b/net/minecraft/client/renderer/tileentity/TileEntityRendererDispatcher.java
+@@ -33,7 +33,7 @@
+     public World world;
+     public ActiveRenderInfo renderInfo;
+     public RayTraceResult cameraHitResult;
+-    public TileEntity tileEntityRendered;
++    public static TileEntity tileEntityRendered;
+ 
+     private TileEntityRendererDispatcher()
+     {
+@@ -112,6 +112,8 @@
+             i = 15728880;
+         }
+ 
++        tileEntityRendered = tileEntityIn;
++
+         if (EmissiveTextures.isActive())
+         {
+             EmissiveTextures.beginRender();
+@@ -130,6 +132,8 @@
+ 
+             EmissiveTextures.endRender();
+         }
++
++        tileEntityRendered = null;
+     }
+ 
+     public <E extends TileEntity> boolean renderItem(E tileEntityIn, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn)
+@@ -144,28 +148,9 @@
+         {
+             runCrashReportable(tileEntityIn, () ->
+             {
+-                this.tileEntityRendered = tileEntityIn;
+-
+-                if (EmissiveTextures.isActive())
+-                {
+-                    EmissiveTextures.beginRender();
+-                }
+-
++                tileEntityRendered = tileEntityIn;
+                 tileentityrenderer.render(tileEntityIn, 0.0F, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+-
+-                if (EmissiveTextures.isActive())
+-                {
+-                    if (EmissiveTextures.hasEmissive())
+-                    {
+-                        EmissiveTextures.beginRenderEmissive();
+-                        tileentityrenderer.render(tileEntityIn, 0.0F, matrixStackIn, bufferIn, LightTexture.MAX_BRIGHTNESS, combinedOverlayIn);
+-                        EmissiveTextures.endRenderEmissive();
+-                    }
+-
+-                    EmissiveTextures.endRender();
+-                }
+-
+-                this.tileEntityRendered = null;
++                tileEntityRendered = null;
+             });
+             return false;
+         }

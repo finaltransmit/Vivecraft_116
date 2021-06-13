@@ -1,0 +1,14 @@
+--- a/net/minecraft/client/renderer/texture/MissingTextureSprite.java
++++ b/net/minecraft/client/renderer/texture/MissingTextureSprite.java
+@@ -39,9 +39,9 @@
+     });
+     private static final TextureAtlasSprite.Info spriteInfo = new TextureAtlasSprite.Info(LOCATION, 16, 16, new AnimationMetadataSection(Lists.newArrayList(new AnimationFrame(0, -1)), 16, 16, 1, false));
+ 
+-    public MissingTextureSprite(AtlasTexture p_i242119_1_, TextureAtlasSprite.Info p_i242119_2_, int p_i242119_3_, int p_i242119_4_, int p_i242119_5_, int p_i242119_6_, int p_i242119_7_)
++    public MissingTextureSprite(AtlasTexture p_i242120_1_, TextureAtlasSprite.Info p_i242120_2_, int p_i242120_3_, int p_i242120_4_, int p_i242120_5_, int p_i242120_6_, int p_i242120_7_)
+     {
+-        super(p_i242119_1_, p_i242119_2_, p_i242119_3_, p_i242119_4_, p_i242119_5_, p_i242119_6_, p_i242119_7_, makeMissingImage(p_i242119_2_.getSpriteWidth(), p_i242119_2_.getSpriteHeight()));
++        super(p_i242120_1_, p_i242120_2_, p_i242120_3_, p_i242120_4_, p_i242120_5_, p_i242120_6_, p_i242120_7_, makeMissingImage(p_i242120_2_.getSpriteWidth(), p_i242120_2_.getSpriteHeight()));
+     }
+ 
+     private MissingTextureSprite(AtlasTexture atlasTextureIn, int mipmapLevelIn, int atlasWidthIn, int atlasHeightIn, int xIn, int yIn)

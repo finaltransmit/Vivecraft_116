@@ -16,19 +16,37 @@
  import net.minecraft.client.shader.ShaderGroup;
  import net.minecraft.client.world.ClientWorld;
  import net.minecraft.client.world.DimensionRenderInfo;
-@@ -151,6 +153,11 @@
+@@ -134,12 +136,15 @@
+ import net.optifine.DynamicLights;
+ import net.optifine.Lagometer;
+ import net.optifine.SmartAnimations;
++import net.optifine.entity.model.CustomEntityModels;
+ import net.optifine.reflect.Reflector;
+ import net.optifine.reflect.ReflectorForge;
+ import net.optifine.render.ChunkVisibility;
+ import net.optifine.render.RenderEnv;
+ import net.optifine.render.RenderStateManager;
++import net.optifine.render.RenderUtils;
+ import net.optifine.render.VboRegion;
++import net.optifine.shaders.RenderStage;
+ import net.optifine.shaders.Shaders;
+ import net.optifine.shaders.ShadersRender;
+ import net.optifine.shaders.ShadowUtils;
+@@ -151,6 +156,13 @@
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  import org.lwjgl.opengl.GL11;
 +import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 +import org.vivecraft.gameplay.screenhandlers.RadialHandler;
 +import org.vivecraft.provider.MCOpenVR;
++import org.vivecraft.render.CustomRender;
 +import org.vivecraft.render.RenderPass;
++import org.vivecraft.render.Renderable;
 +import org.vivecraft.settings.VRSettings;
  
  public class WorldRenderer implements IResourceManagerReloadListener, AutoCloseable
  {
-@@ -267,7 +274,16 @@
+@@ -267,7 +279,16 @@
      private static boolean ambientOcclusion = false;
      private Map<String, List<Entity>> mapEntityLists = new HashMap<>();
      private Map<RenderType, Map> mapRegionLayers = new LinkedHashMap<>();
@@ -46,7 +64,7 @@
      public WorldRenderer(Minecraft mcIn, RenderTypeBuffers rainTimeBuffersIn)
      {
          this.mc = mcIn;
-@@ -316,9 +332,16 @@
+@@ -316,9 +337,16 @@
  
              lightmapIn.enableLightmap();
              World world = this.mc.world;
@@ -66,7 +84,7 @@
              Tessellator tessellator = Tessellator.getInstance();
              BufferBuilder bufferbuilder = tessellator.getBuffer();
              RenderSystem.enableAlphaTest();
-@@ -549,17 +572,22 @@
+@@ -549,17 +577,22 @@
          RenderSystem.texParameter(3553, 10242, 10497);
          RenderSystem.texParameter(3553, 10243, 10497);
          RenderSystem.bindTexture(0);
@@ -95,7 +113,7 @@
      public void makeEntityOutlineShader()
      {
          if (this.entityOutlineShader != null)
-@@ -570,7 +598,7 @@
+@@ -570,7 +603,7 @@
          ResourceLocation resourcelocation = new ResourceLocation("shaders/post/entity_outline.json");
  
          try
@@ -104,7 +122,7 @@
              this.entityOutlineShader = new ShaderGroup(this.mc.getTextureManager(), this.mc.getResourceManager(), this.mc.getFramebuffer(), resourcelocation);
              this.entityOutlineShader.createBindFramebuffers(this.mc.getMainWindow().getFramebufferWidth(), this.mc.getMainWindow().getFramebufferHeight());
              this.entityOutlineFramebuffer = this.entityOutlineShader.getFramebufferRaw("final");
-@@ -588,11 +616,12 @@
+@@ -588,11 +621,12 @@
              this.entityOutlineFramebuffer = null;
          }
      }
@@ -120,7 +138,7 @@
  
          try
          {
-@@ -644,7 +673,8 @@
+@@ -644,7 +678,8 @@
          }
      }
  
@@ -130,7 +148,7 @@
      {
          if (this.field_239227_K_ != null)
          {
-@@ -869,14 +899,15 @@
+@@ -869,14 +904,15 @@
      {
          if (this.world != null)
          {
@@ -154,7 +172,7 @@
  
              this.world.clearColorCaches();
  
-@@ -1018,7 +1049,8 @@
+@@ -1018,7 +1054,8 @@
              this.viewFrustum.updateChunkPositions(this.mc.player.getPosX(), this.mc.player.getPosZ());
          }
  
@@ -164,7 +182,7 @@
          {
              DynamicLights.update(this);
          }
-@@ -1032,7 +1064,8 @@
+@@ -1032,7 +1069,8 @@
          BlockPos blockpos1 = new BlockPos(MathHelper.floor(vector3d.x / 16.0D) * 16, MathHelper.floor(vector3d.y / 16.0D) * 16, MathHelper.floor(vector3d.z / 16.0D) * 16);
          float f = activeRenderInfoIn.getPitch();
          float f1 = activeRenderInfoIn.getYaw();
@@ -174,7 +192,7 @@
          this.lastViewEntityX = vector3d.x;
          this.lastViewEntityY = vector3d.y;
          this.lastViewEntityZ = vector3d.z;
-@@ -1376,8 +1409,14 @@
+@@ -1376,8 +1414,14 @@
          TileEntityRendererDispatcher.instance.prepare(this.world, this.mc.getTextureManager(), this.mc.fontRenderer, activeRenderInfoIn, this.mc.objectMouseOver);
          this.renderManager.cacheActiveRenderInfo(this.world, activeRenderInfoIn, this.mc.pointedEntity);
          IProfiler iprofiler = this.world.getProfiler();
@@ -191,21 +209,20 @@
          Vector3d vector3d = activeRenderInfoIn.getProjectedView();
          double d0 = vector3d.getX();
          double d1 = vector3d.getY();
-@@ -1425,7 +1464,12 @@
-         {
-             Shaders.clearRenderBuffer();
-         }
--
-+        
-+        //Vivecraft - VR Stencil
-+        this.mc.getProfiler().endStartSection("stencil");
-+    		gameRendererIn.drawEyeStencil(flag1);
-+		//    
-+       
+@@ -1424,11 +1468,8 @@
          if (flag1)
          {
+             Shaders.clearRenderBuffer();
+-        }
+-
+-        if (flag1)
+-        {
              Shaders.setCamera(matrixStackIn, activeRenderInfoIn, partialTicks);
-@@ -1487,12 +1531,13 @@
++            Shaders.renderPrepare();
+         }
+ 
+         clippinghelper.disabled = Config.isShaders() && !Shaders.isFrustumCulling();
+@@ -1487,12 +1528,13 @@
          iprofiler.endStartSection("terrain");
          Lagometer.timerTerrain.start();
  
@@ -221,7 +238,7 @@
  
          if (Config.isFogOff() && FogRenderer.fogStandard)
          {
-@@ -1511,14 +1556,16 @@
+@@ -1511,16 +1553,23 @@
          }
  
          Lagometer.timerTerrain.end();
@@ -232,28 +249,38 @@
          if (this.world.func_239132_a_().func_239217_c_())
          {
 -            RenderHelper.setupDiffuseGuiLighting(matrixStackIn.getLast().getMatrix());
-+             RenderHelper.setupDiffuseGuiLighting(light);
++            RenderHelper.setupDiffuseGuiLighting(light);
          }
          else
          {
 -            RenderHelper.setupLevelDiffuseLighting(matrixStackIn.getLast().getMatrix());
 +            RenderHelper.setupLevelDiffuseLighting(light);
          }
- 
+-
++        
++        //Vivecraft - VR Stencil
++        this.mc.getProfiler().endStartSection("stencil");
++    		gameRendererIn.drawEyeStencil(flag1);
++		//    
++       
          if (flag1)
-@@ -1559,6 +1606,11 @@
+         {
+             Shaders.beginEntities();
+@@ -1559,6 +1608,13 @@
              RenderStateManager.enableCache();
          }
  
 +        //Vivecraft
 +        boolean selfRender = (mc.currentPass == RenderPass.THIRD && mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_THIRD_PERSON) || mc.currentPass == RenderPass.CAMERA;
 +        selfRender |= mc.vrSettings.shouldRenderSelf || mc.vrSettings.tmpRenderSelf;
++
++        CustomRender.renderStage(partialTicks, Renderable.RenderStage.PRE_WORLD);
 +        //
 +
          for (WorldRenderer.LocalRenderInformationContainer worldrenderer$localrenderinformationcontainer : this.renderInfosEntities)
          {
              ChunkRenderDispatcher.ChunkRender chunkrenderdispatcher$chunkrender = worldrenderer$localrenderinformationcontainer.renderChunk;
-@@ -1567,8 +1619,8 @@
+@@ -1567,8 +1623,8 @@
              for (Entity entity : chunk.getEntityLists()[chunkrenderdispatcher$chunkrender.getPosition().getY() / 16])
              {
                  boolean flag4 = entity == this.mc.player && !this.mc.player.isSpectator();
@@ -264,7 +291,7 @@
                  {
                      String s = entity.getClass().getName();
                      List<Entity> list = this.mapEntityLists.get(s);
-@@ -1590,6 +1642,12 @@
+@@ -1590,6 +1646,12 @@
              {
                  ++this.countEntitiesRendered;
  
@@ -277,7 +304,7 @@
                  if (entity1.ticksExisted == 0)
                  {
                      entity1.lastTickPosX = entity1.getPosX();
-@@ -1625,6 +1683,14 @@
+@@ -1625,6 +1687,14 @@
  
                  this.renderEntity(entity1, d0, d1, d2, partialTicks, matrixStackIn, irendertypebuffer);
                  this.renderedEntity = null;
@@ -292,7 +319,47 @@
              }
  
              list1.clear();
-@@ -1813,10 +1879,25 @@
+@@ -1646,7 +1716,7 @@
+         SignTileEntityRenderer.updateTextRenderDistance();
+         boolean flag5 = Reflector.IForgeTileEntity_getRenderBoundingBox.exists();
+         ClippingHelper clippinghelper1 = clippinghelper;
+-        label347:
++        label354:
+ 
+         for (WorldRenderer.LocalRenderInformationContainer worldrenderer$localrenderinformationcontainer1 : this.renderInfosTileEntities)
+         {
+@@ -1665,7 +1735,7 @@
+                     {
+                         if (!iterator1.hasNext())
+                         {
+-                            continue label347;
++                            continue label354;
+                         }
+ 
+                         tileentity1 = (TileEntity)iterator1.next();
+@@ -1716,7 +1786,7 @@
+         synchronized (this.setTileEntities)
+         {
+             Iterator iterator = this.setTileEntities.iterator();
+-            label322:
++            label329:
+ 
+             while (true)
+             {
+@@ -1727,7 +1797,7 @@
+                 {
+                     if (!iterator.hasNext())
+                     {
+-                        break label322;
++                        break label329;
+                     }
+ 
+                     tileentity = (TileEntity)iterator.next();
+@@ -1810,15 +1880,37 @@
+         }
+ 
+         this.renderOverlayDamaged = false;
++        RenderUtils.flushRenderBuffers();
          --renderEntitiesCounter;
          this.checkMatrixStack(matrixStackIn);
          RayTraceResult raytraceresult = this.mc.objectMouseOver;
@@ -319,8 +386,23 @@
 +        	//
              BlockPos blockpos = ((BlockRayTraceResult)raytraceresult).getPos();
              BlockState blockstate = this.world.getBlockState(blockpos);
++
++            if (flag1)
++            {
++                ShadersRender.beginOutline();
++            }
++
              boolean flag7;
-@@ -1845,7 +1926,7 @@
+ 
+             if (Reflector.IForgeBlockState_isAir2.exists() && Reflector.ForgeHooksClient_onDrawBlockHighlight.exists())
+@@ -1839,20 +1931,27 @@
+             if (flag1)
+             {
+                 irendertypebuffer$impl.finish(RenderType.getLines());
++                ShadersRender.endOutline();
+             }
+         }
+         else if (raytraceresult != null && raytraceresult.getType() == RayTraceResult.Type.ENTITY)
          {
              Reflector.ForgeHooksClient_onDrawBlockHighlight.call(this, activeRenderInfoIn, raytraceresult, partialTicks, matrixStackIn, irendertypebuffer$impl);
          }
@@ -329,20 +411,32 @@
          RenderSystem.pushMatrix();
          RenderSystem.multMatrix(matrixStackIn.getLast().getMatrix());
          boolean flag6 = GlStateManager.isFogEnabled();
-@@ -1853,6 +1934,7 @@
+         GlStateManager.disableFog();
++
++        if (flag1)
++        {
++            ShadersRender.beginDebug();
++        }
++
          this.mc.debugRenderer.render(matrixStackIn, irendertypebuffer$impl, d0, d1, d2);
-         GlStateManager.setFogEnabled(flag6);
+-        GlStateManager.setFogEnabled(flag6);
          RenderSystem.popMatrix();
 +        this.mc.getProfiler().endStartSection("render bukkake");
          irendertypebuffer$impl.finish(Atlases.getTranslucentCullBlockType());
          irendertypebuffer$impl.finish(Atlases.getBannerType());
          irendertypebuffer$impl.finish(Atlases.getShieldType());
-@@ -1869,13 +1951,16 @@
+@@ -1865,17 +1964,22 @@
+         irendertypebuffer$impl.finish(RenderType.getEntityGlintDirect());
+         irendertypebuffer$impl.finish(RenderType.getWaterMask());
+         this.renderTypeTextures.getCrumblingBufferSource().finish();
++        GlStateManager.setFogEnabled(flag6);
+ 
          if (flag1)
          {
              irendertypebuffer$impl.finish();
 -            Shaders.preRenderHand();
 -            ShadersRender.renderHand0(gameRendererIn, matrixStackIn, activeRenderInfoIn, partialTicks);
++            ShadersRender.endDebug();
 +            //Shaders.preRenderHand();
 +            //ShadersRender.renderHand0(gameRendererIn, matrixStackIn, activeRenderInfoIn, partialTicks);
              Shaders.preWater();
@@ -357,7 +451,7 @@
              irendertypebuffer$impl.finish(RenderType.getLines());
              irendertypebuffer$impl.finish();
              this.field_239222_F_.framebufferClear(Minecraft.IS_RUNNING_ON_MAC);
-@@ -1890,10 +1975,15 @@
+@@ -1890,10 +1994,15 @@
              iprofiler.endStartSection("particles");
              this.mc.particles.renderParticles(matrixStackIn, irendertypebuffer$impl, lightmapIn, activeRenderInfoIn, partialTicks, clippinghelper);
              RenderState.field_239237_T_.clearRenderState();
@@ -375,7 +469,7 @@
  
              if (flag1)
              {
-@@ -1919,7 +2009,9 @@
+@@ -1919,7 +2028,9 @@
              }
  
              this.mc.particles.renderParticles(matrixStackIn, irendertypebuffer$impl, lightmapIn, activeRenderInfoIn, partialTicks, clippinghelper);
@@ -386,7 +480,91 @@
              if (flag1)
              {
                  Shaders.endParticles();
-@@ -3213,10 +3305,11 @@
+@@ -1985,6 +2096,7 @@
+         }
+ 
+         this.renderDebug(activeRenderInfoIn);
++        CustomRender.renderStage(partialTicks, Renderable.RenderStage.DEBUG);
+         RenderSystem.shadeModel(7424);
+         RenderSystem.depthMask(true);
+         RenderSystem.disableBlend();
+@@ -2602,6 +2714,11 @@
+                     Shaders.disableTexture2D();
+                 }
+ 
++                if (flag)
++                {
++                    Shaders.setRenderStage(RenderStage.SUNSET);
++                }
++
+                 RenderSystem.shadeModel(7425);
+                 matrixStackIn.push();
+                 matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90.0F));
+@@ -2661,6 +2778,11 @@
+ 
+             if (Config.isSunTexture())
+             {
++                if (flag)
++                {
++                    Shaders.setRenderStage(RenderStage.SUN);
++                }
++
+                 this.textureManager.bindTexture(SUN_TEXTURES);
+                 bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+                 bufferbuilder.pos(matrix4f1, -f11, 100.0F, -f11).tex(0.0F, 0.0F).endVertex();
+@@ -2675,6 +2797,11 @@
+ 
+             if (Config.isMoonTexture())
+             {
++                if (flag)
++                {
++                    Shaders.setRenderStage(RenderStage.MOON);
++                }
++
+                 this.textureManager.bindTexture(MOON_PHASES_TEXTURES);
+                 int k = this.world.getMoonPhase();
+                 int l = k % 4;
+@@ -2703,6 +2830,11 @@
+ 
+             if (f12 > 0.0F && Config.isStarsEnabled() && !CustomSky.hasSkyLayers(this.world))
+             {
++                if (flag)
++                {
++                    Shaders.setRenderStage(RenderStage.STARS);
++                }
++
+                 RenderSystem.color4f(f12, f12, f12, f12);
+                 this.starVBO.bindBuffer();
+                 this.skyVertexFormat.setupBufferState(0L);
+@@ -2735,6 +2867,11 @@
+ 
+             if (d0 < 0.0D)
+             {
++                if (flag)
++                {
++                    Shaders.setRenderStage(RenderStage.VOID);
++                }
++
+                 matrixStackIn.push();
+                 matrixStackIn.translate(0.0D, 12.0D, 0.0D);
+                 this.sky2VBO.bindBuffer();
+@@ -3092,6 +3229,7 @@
+             {
+                 Shaders.pushProgram();
+                 Shaders.useProgram(Shaders.ProgramTexturedLit);
++                Shaders.setRenderStage(RenderStage.WORLD_BORDER);
+             }
+ 
+             double d1 = 1.0D - worldborder.getClosestDistance(activeRenderInfoIn.getProjectedView().x, activeRenderInfoIn.getProjectedView().z) / d0;
+@@ -3205,6 +3343,7 @@
+             if (Config.isShaders())
+             {
+                 Shaders.popProgram();
++                Shaders.setRenderStage(RenderStage.NONE);
+             }
+         }
+     }
+@@ -3213,10 +3352,14 @@
      {
          bufferIn.pos(xIn - camX, (double)yIn - camY, zIn - camZ).tex(texU, texV).endVertex();
      }
@@ -396,11 +574,14 @@
      private void drawSelectionBox(MatrixStack matrixStackIn, IVertexBuilder bufferIn, Entity entityIn, double xIn, double yIn, double zIn, BlockPos blockPosIn, BlockState blockStateIn)
      {
 -        drawShape(matrixStackIn, bufferIn, blockStateIn.getShape(this.world, blockPosIn, ISelectionContext.forEntity(entityIn)), (double)blockPosIn.getX() - xIn, (double)blockPosIn.getY() - yIn, (double)blockPosIn.getZ() - zIn, 0.0F, 0.0F, 0.0F, 0.4F);
-+        drawShape(matrixStackIn, bufferIn, blockStateIn.getShape(this.world, blockPosIn, ISelectionContext.forEntity(entityIn)), (double)blockPosIn.getX() - xIn, (double)blockPosIn.getY() - yIn, (double)blockPosIn.getZ() - zIn, selR, selG, selB, 0.4F);
++        if (!Config.isCustomEntityModels() || !CustomEntityModels.isCustomModel(blockStateIn))
++        {
++            drawShape(matrixStackIn, bufferIn, blockStateIn.getShape(this.world, blockPosIn, ISelectionContext.forEntity(entityIn)), (double)blockPosIn.getX() - xIn, (double)blockPosIn.getY() - yIn, (double)blockPosIn.getZ() - zIn, selR, selG, selB, 0.4F);
++        }
      }
  
      public static void drawVoxelShapeParts(MatrixStack matrixStackIn, IVertexBuilder bufferIn, VoxelShape shapeIn, double xIn, double yIn, double zIn, float red, float green, float blue, float alpha)
-@@ -3693,6 +3786,8 @@
+@@ -3693,6 +3836,8 @@
      {
          Random random = this.world.rand;
  
@@ -409,7 +590,7 @@
          switch (type)
          {
              case 1000:
-@@ -3755,18 +3850,26 @@
+@@ -3755,18 +3900,26 @@
                  break;
  
              case 1011:
@@ -436,7 +617,7 @@
                  this.world.playSound(blockPosIn, SoundEvents.BLOCK_FENCE_GATE_CLOSE, SoundCategory.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -3787,14 +3890,26 @@
+@@ -3787,14 +3940,26 @@
                  break;
  
              case 1019:
@@ -463,7 +644,7 @@
                  this.world.playSound(blockPosIn, SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, SoundCategory.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
-@@ -3823,10 +3938,17 @@
+@@ -3823,10 +3988,17 @@
                  break;
  
              case 1030:
@@ -481,7 +662,7 @@
                  this.world.playSound(blockPosIn, SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.3F, this.world.rand.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -3847,6 +3969,9 @@
+@@ -3847,6 +4019,9 @@
                  break;
  
              case 1036:
@@ -491,7 +672,23 @@
                  this.world.playSound(blockPosIn, SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -4439,4 +4564,40 @@
+@@ -4407,11 +4582,11 @@
+         private int setFacing;
+         private int counter;
+ 
+-        public LocalRenderInformationContainer(ChunkRenderDispatcher.ChunkRender p_i242105_1_, @Nullable Direction p_i242105_2_, int p_i242105_3_)
++        public LocalRenderInformationContainer(ChunkRenderDispatcher.ChunkRender p_i242106_1_, @Nullable Direction p_i242106_2_, int p_i242106_3_)
+         {
+-            this.renderChunk = p_i242105_1_;
+-            this.facing = p_i242105_2_;
+-            this.setFacing = p_i242105_3_;
++            this.renderChunk = p_i242106_1_;
++            this.facing = p_i242106_2_;
++            this.setFacing = p_i242106_3_;
+         }
+ 
+         public void setDirection(byte dir, Direction facingIn)
+@@ -4439,4 +4614,40 @@
              super(p_i232463_1_, p_i232463_2_);
          }
      }

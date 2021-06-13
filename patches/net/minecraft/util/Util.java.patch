@@ -9,3 +9,12 @@
          ExecutorService executorservice;
  
          if (i <= 0)
+@@ -238,7 +238,7 @@
+         }
+         catch (IllegalArgumentException illegalargumentexception)
+         {
+-            LOGGER.error("No data fixer registered for {}", (Object)choiceName);
++            LOGGER.debug("No data fixer registered for {}", (Object)choiceName);
+ 
+             if (SharedConstants.developmentMode)
+             {

@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/renderer/model/RenderMaterial.java
++++ b/net/minecraft/client/renderer/model/RenderMaterial.java
+@@ -11,6 +11,7 @@
+ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+ import net.minecraft.util.ResourceLocation;
+ import net.optifine.EmissiveTextures;
++import net.optifine.render.RenderUtils;
+ 
+ public class RenderMaterial
+ {
+@@ -64,6 +65,7 @@
+ 
+         if (textureatlassprite.isSpriteEmissive && rendertype.isEntitySolid())
+         {
++            RenderUtils.flushRenderBuffers();
+             rendertype = RenderType.getEntityCutout(this.atlasLocation);
+         }
+ 

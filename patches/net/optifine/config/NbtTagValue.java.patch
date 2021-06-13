@@ -1,0 +1,196 @@
+--- a/net/optifine/config/NbtTagValue.java
++++ b/net/optifine/config/NbtTagValue.java
+@@ -1,7 +1,6 @@
+ package net.optifine.config;
+ 
+ import java.util.Arrays;
+-import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+ import net.minecraft.nbt.ByteNBT;
+ import net.minecraft.nbt.CompoundNBT;
+@@ -38,7 +37,6 @@
+     private static final int FORMAT_HEX_COLOR = 1;
+     private static final String PREFIX_HEX_COLOR = "#";
+     private static final Pattern PATTERN_HEX_COLOR = Pattern.compile("^#[0-9a-f]{6}+$");
+-    private static final Pattern PATTERN_NBT_TEXT = Pattern.compile(".*\"text\":\"([^\"]+)\".*");
+ 
+     public NbtTagValue(String tag, String value)
+     {
+@@ -263,57 +261,139 @@
+         {
+             return null;
+         }
+-        else if (nbtBase instanceof StringNBT)
++        else if (!(nbtBase instanceof StringNBT))
++        {
++            if (nbtBase instanceof IntNBT)
++            {
++                IntNBT intnbt = (IntNBT)nbtBase;
++                return format == 1 ? "#" + StrUtils.fillLeft(Integer.toHexString(intnbt.getInt()), 6, '0') : Integer.toString(intnbt.getInt());
++            }
++            else if (nbtBase instanceof ByteNBT)
++            {
++                ByteNBT bytenbt = (ByteNBT)nbtBase;
++                return Byte.toString(bytenbt.getByte());
++            }
++            else if (nbtBase instanceof ShortNBT)
++            {
++                ShortNBT shortnbt = (ShortNBT)nbtBase;
++                return Short.toString(shortnbt.getShort());
++            }
++            else if (nbtBase instanceof LongNBT)
++            {
++                LongNBT longnbt = (LongNBT)nbtBase;
++                return Long.toString(longnbt.getLong());
++            }
++            else if (nbtBase instanceof FloatNBT)
++            {
++                FloatNBT floatnbt = (FloatNBT)nbtBase;
++                return Float.toString(floatnbt.getFloat());
++            }
++            else if (nbtBase instanceof DoubleNBT)
++            {
++                DoubleNBT doublenbt = (DoubleNBT)nbtBase;
++                return Double.toString(doublenbt.getDouble());
++            }
++            else
++            {
++                return nbtBase.toString();
++            }
++        }
++        else
+         {
+             StringNBT stringnbt = (StringNBT)nbtBase;
+             String s = stringnbt.getString();
+ 
+-            if (s.startsWith("{"))
++            if (s.startsWith("{") && s.endsWith("}"))
+             {
+-                Matcher matcher = PATTERN_NBT_TEXT.matcher(s);
+-
+-                if (matcher.matches())
+-                {
+-                    return matcher.group(1);
+-                }
++                s = getMergedJsonText(s);
++            }
++            else if (s.startsWith("[{") && s.endsWith("}]"))
++            {
++                s = getMergedJsonText(s);
+             }
+ 
+             return s;
+         }
+-        else if (nbtBase instanceof IntNBT)
+-        {
+-            IntNBT intnbt = (IntNBT)nbtBase;
+-            return format == 1 ? "#" + StrUtils.fillLeft(Integer.toHexString(intnbt.getInt()), 6, '0') : Integer.toString(intnbt.getInt());
+-        }
+-        else if (nbtBase instanceof ByteNBT)
+-        {
+-            ByteNBT bytenbt = (ByteNBT)nbtBase;
+-            return Byte.toString(bytenbt.getByte());
+-        }
+-        else if (nbtBase instanceof ShortNBT)
+-        {
+-            ShortNBT shortnbt = (ShortNBT)nbtBase;
+-            return Short.toString(shortnbt.getShort());
+-        }
+-        else if (nbtBase instanceof LongNBT)
+-        {
+-            LongNBT longnbt = (LongNBT)nbtBase;
+-            return Long.toString(longnbt.getLong());
+-        }
+-        else if (nbtBase instanceof FloatNBT)
+-        {
+-            FloatNBT floatnbt = (FloatNBT)nbtBase;
+-            return Float.toString(floatnbt.getFloat());
+-        }
+-        else if (nbtBase instanceof DoubleNBT)
++    }
++
++    private static String getMergedJsonText(String text)
++    {
++        StringBuilder stringbuilder = new StringBuilder();
++        String s = "\"text\":\"";
++        int i = -1;
++
++        while (true)
+         {
+-            DoubleNBT doublenbt = (DoubleNBT)nbtBase;
+-            return Double.toString(doublenbt.getDouble());
++            i = text.indexOf(s, i + 1);
++
++            if (i < 0)
++            {
++                return stringbuilder.toString();
++            }
++
++            String s1 = parseString(text, i + s.length());
++
++            if (s1 != null)
++            {
++                stringbuilder.append(s1);
++            }
+         }
+-        else
++    }
++
++    private static String parseString(String text, int pos)
++    {
++        StringBuilder stringbuilder = new StringBuilder();
++        boolean flag = false;
++
++        for (int i = pos; i < text.length(); ++i)
+         {
+-            return nbtBase.toString();
++            char c0 = text.charAt(i);
++
++            if (flag)
++            {
++                if (c0 == 'b')
++                {
++                    stringbuilder.append('\b');
++                }
++                else if (c0 == 'f')
++                {
++                    stringbuilder.append('\f');
++                }
++                else if (c0 == 'n')
++                {
++                    stringbuilder.append('\n');
++                }
++                else if (c0 == 'r')
++                {
++                    stringbuilder.append('\r');
++                }
++                else if (c0 == 't')
++                {
++                    stringbuilder.append('\t');
++                }
++                else
++                {
++                    stringbuilder.append(c0);
++                }
++
++                flag = false;
++            }
++            else if (c0 == '\\')
++            {
++                flag = true;
++            }
++            else
++            {
++                if (c0 == '"')
++                {
++                    break;
++                }
++
++                stringbuilder.append(c0);
++            }
+         }
++
++        return stringbuilder.toString();
+     }
+ 
+     public String toString()

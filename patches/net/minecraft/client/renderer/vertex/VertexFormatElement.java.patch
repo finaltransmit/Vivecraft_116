@@ -1,0 +1,36 @@
+--- a/net/minecraft/client/renderer/vertex/VertexFormatElement.java
++++ b/net/minecraft/client/renderer/vertex/VertexFormatElement.java
+@@ -13,6 +13,7 @@
+     private final int index;
+     private final int elementCount;
+     private final int sizeBytes;
++    private String name;
+ 
+     public VertexFormatElement(int indexIn, VertexFormatElement.Type typeIn, VertexFormatElement.Usage usageIn, int count)
+     {
+@@ -54,7 +55,7 @@
+ 
+     public String toString()
+     {
+-        return this.elementCount + "," + this.usage.getDisplayName() + "," + this.type.getDisplayName();
++        return this.name != null ? this.name : this.elementCount + "," + this.usage.getDisplayName() + "," + this.type.getDisplayName();
+     }
+ 
+     public final int getSize()
+@@ -118,6 +119,16 @@
+         return this.elementCount;
+     }
+ 
++    public String getName()
++    {
++        return this.name;
++    }
++
++    public void setName(String p_setName_1_)
++    {
++        this.name = p_setName_1_;
++    }
++
+     public static enum Type
+     {
+         FLOAT(4, "Float", 5126),

@@ -1,0 +1,27 @@
+--- a/net/minecraft/client/renderer/model/ItemOverrideList.java
++++ b/net/minecraft/client/renderer/model/ItemOverrideList.java
+@@ -34,18 +34,18 @@
+         this(modelBakeryIn, blockModelIn, modelGetter, modelBakeryIn.getSpriteMap()::getSprite, itemOverridesIn);
+     }
+ 
+-    public ItemOverrideList(ModelBakery p_i242112_1_, IUnbakedModel p_i242112_2_, Function<ResourceLocation, IUnbakedModel> p_i242112_3_, Function<RenderMaterial, TextureAtlasSprite> p_i242112_4_, List<ItemOverride> p_i242112_5_)
++    public ItemOverrideList(ModelBakery p_i242113_1_, IUnbakedModel p_i242113_2_, Function<ResourceLocation, IUnbakedModel> p_i242113_3_, Function<RenderMaterial, TextureAtlasSprite> p_i242113_4_, List<ItemOverride> p_i242113_5_)
+     {
+-        this.overrideBakedModels = p_i242112_5_.stream().map((p_lambda$new$0_4_) ->
++        this.overrideBakedModels = p_i242113_5_.stream().map((p_lambda$new$0_4_) ->
+         {
+-            IUnbakedModel iunbakedmodel = p_i242112_3_.apply(p_lambda$new$0_4_.getLocation());
+-            return Objects.equals(iunbakedmodel, p_i242112_2_) ? null : p_i242112_1_.getBakedModel(p_lambda$new$0_4_.getLocation(), ModelRotation.X0_Y0, p_i242112_4_);
++            IUnbakedModel iunbakedmodel = p_i242113_3_.apply(p_lambda$new$0_4_.getLocation());
++            return Objects.equals(iunbakedmodel, p_i242113_2_) ? null : p_i242113_1_.getBakedModel(p_lambda$new$0_4_.getLocation(), ModelRotation.X0_Y0, p_i242113_4_);
+         }).collect(Collectors.toList());
+         Collections.reverse(this.overrideBakedModels);
+ 
+-        for (int i = p_i242112_5_.size() - 1; i >= 0; --i)
++        for (int i = p_i242113_5_.size() - 1; i >= 0; --i)
+         {
+-            this.overrides.add(p_i242112_5_.get(i));
++            this.overrides.add(p_i242113_5_.get(i));
+         }
+ 
+         if (this.overrides.size() > 65)

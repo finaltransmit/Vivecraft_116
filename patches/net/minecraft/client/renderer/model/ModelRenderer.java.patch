@@ -1,0 +1,210 @@
+--- a/net/minecraft/client/renderer/model/ModelRenderer.java
++++ b/net/minecraft/client/renderer/model/ModelRenderer.java
+@@ -2,6 +2,7 @@
+ 
+ import com.mojang.blaze3d.matrix.MatrixStack;
+ import com.mojang.blaze3d.vertex.IVertexBuilder;
++import com.mojang.blaze3d.vertex.VertexBuilderUtils;
+ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ import it.unimi.dsi.fastutil.objects.ObjectList;
+ import java.util.ArrayList;
+@@ -16,8 +17,13 @@
+ import net.minecraft.util.math.vector.Matrix4f;
+ import net.minecraft.util.math.vector.Vector3f;
+ import net.optifine.Config;
++import net.optifine.IRandomEntity;
++import net.optifine.RandomEntities;
+ import net.optifine.entity.model.anim.ModelUpdater;
+ import net.optifine.model.ModelSprite;
++import net.optifine.render.BoxVertexPositions;
++import net.optifine.render.VertexPosition;
++import net.optifine.shaders.Shaders;
+ 
+ public class ModelRenderer
+ {
+@@ -168,8 +174,14 @@
+ 
+                 if (irendertypebuffer$impl != null)
+                 {
++                    IVertexBuilder ivertexbuilder = bufferIn.getSecondaryBuilder();
+                     rendertype = irendertypebuffer$impl.getLastRenderType();
+                     bufferIn = irendertypebuffer$impl.getBuffer(this.textureLocation, bufferIn);
++
++                    if (ivertexbuilder != null)
++                    {
++                        bufferIn = VertexBuilderUtils.newDelegate(ivertexbuilder, bufferIn);
++                    }
+                 }
+             }
+ 
+@@ -181,11 +193,11 @@
+             matrixStackIn.push();
+             this.translateRotate(matrixStackIn);
+             this.doRender(matrixStackIn.getLast(), bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+-            int i = this.childModels.size();
++            int j = this.childModels.size();
+ 
+-            for (int j = 0; j < i; ++j)
++            for (int i = 0; i < j; ++i)
+             {
+-                ModelRenderer modelrenderer = this.childModels.get(j);
++                ModelRenderer modelrenderer = this.childModels.get(i);
+                 modelrenderer.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+             }
+ 
+@@ -230,28 +242,46 @@
+     {
+         Matrix4f matrix4f = matrixEntryIn.getMatrix();
+         Matrix3f matrix3f = matrixEntryIn.getNormal();
++        boolean flag = Config.isShaders() && Shaders.useVelocityAttrib && Config.isMinecraftThread();
+         int i = this.cubeList.size();
+ 
+         for (int j = 0; j < i; ++j)
+         {
+             ModelRenderer.ModelBox modelrenderer$modelbox = this.cubeList.get(j);
+-            int k = modelrenderer$modelbox.quads.length;
++            VertexPosition[][] avertexposition = (VertexPosition[][])null;
+ 
+-            for (int l = 0; l < k; ++l)
++            if (flag)
++            {
++                IRandomEntity irandomentity = RandomEntities.getRandomEntityRendered();
++
++                if (irandomentity != null)
++                {
++                    avertexposition = modelrenderer$modelbox.getBoxVertexPositions(irandomentity.getId());
++                }
++            }
++
++            int i1 = modelrenderer$modelbox.quads.length;
++
++            for (int k = 0; k < i1; ++k)
+             {
+-                ModelRenderer.TexturedQuad modelrenderer$texturedquad = modelrenderer$modelbox.quads[l];
++                ModelRenderer.TexturedQuad modelrenderer$texturedquad = modelrenderer$modelbox.quads[k];
+ 
+                 if (modelrenderer$texturedquad != null)
+                 {
++                    if (avertexposition != null)
++                    {
++                        bufferIn.setQuadVertexPositions(avertexposition[k]);
++                    }
++
+                     Vector3f vector3f = bufferIn.getTempVec3f(modelrenderer$texturedquad.normal);
+                     vector3f.transform(matrix3f);
+                     float f = vector3f.getX();
+                     float f1 = vector3f.getY();
+                     float f2 = vector3f.getZ();
+ 
+-                    for (int i1 = 0; i1 < 4; ++i1)
++                    for (int l = 0; l < 4; ++l)
+                     {
+-                        ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex = modelrenderer$texturedquad.vertexPositions[i1];
++                        ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex = modelrenderer$texturedquad.vertexPositions[l];
+                         float f3 = modelrenderer$positiontexturevertex.position.getX() / 16.0F;
+                         float f4 = modelrenderer$positiontexturevertex.position.getY() / 16.0F;
+                         float f5 = modelrenderer$positiontexturevertex.position.getZ() / 16.0F;
+@@ -403,6 +433,7 @@
+         public final float posX2;
+         public final float posY2;
+         public final float posZ2;
++        private BoxVertexPositions boxVertexPositions;
+ 
+         public ModelBox(int texOffX, int texOffY, float x, float y, float z, float width, float height, float depth, float deltaX, float deltaY, float deltaZ, boolean mirorIn, float texWidth, float texHeight)
+         {
+@@ -455,46 +486,46 @@
+             this.quads[5] = new ModelRenderer.TexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex5, modelrenderer$positiontexturevertex6}, f8, f11, f9, f12, texWidth, texHeight, mirorIn, Direction.SOUTH);
+         }
+ 
+-        public ModelBox(int[][] p_i242121_1_, float p_i242121_2_, float p_i242121_3_, float p_i242121_4_, float p_i242121_5_, float p_i242121_6_, float p_i242121_7_, float p_i242121_8_, float p_i242121_9_, float p_i242121_10_, boolean p_i242121_11_, float p_i242121_12_, float p_i242121_13_)
++        public ModelBox(int[][] p_i242122_1_, float p_i242122_2_, float p_i242122_3_, float p_i242122_4_, float p_i242122_5_, float p_i242122_6_, float p_i242122_7_, float p_i242122_8_, float p_i242122_9_, float p_i242122_10_, boolean p_i242122_11_, float p_i242122_12_, float p_i242122_13_)
+         {
+-            this.posX1 = p_i242121_2_;
+-            this.posY1 = p_i242121_3_;
+-            this.posZ1 = p_i242121_4_;
+-            this.posX2 = p_i242121_2_ + p_i242121_5_;
+-            this.posY2 = p_i242121_3_ + p_i242121_6_;
+-            this.posZ2 = p_i242121_4_ + p_i242121_7_;
++            this.posX1 = p_i242122_2_;
++            this.posY1 = p_i242122_3_;
++            this.posZ1 = p_i242122_4_;
++            this.posX2 = p_i242122_2_ + p_i242122_5_;
++            this.posY2 = p_i242122_3_ + p_i242122_6_;
++            this.posZ2 = p_i242122_4_ + p_i242122_7_;
+             this.quads = new ModelRenderer.TexturedQuad[6];
+-            float f = p_i242121_2_ + p_i242121_5_;
+-            float f1 = p_i242121_3_ + p_i242121_6_;
+-            float f2 = p_i242121_4_ + p_i242121_7_;
+-            p_i242121_2_ = p_i242121_2_ - p_i242121_8_;
+-            p_i242121_3_ = p_i242121_3_ - p_i242121_9_;
+-            p_i242121_4_ = p_i242121_4_ - p_i242121_10_;
+-            f = f + p_i242121_8_;
+-            f1 = f1 + p_i242121_9_;
+-            f2 = f2 + p_i242121_10_;
++            float f = p_i242122_2_ + p_i242122_5_;
++            float f1 = p_i242122_3_ + p_i242122_6_;
++            float f2 = p_i242122_4_ + p_i242122_7_;
++            p_i242122_2_ = p_i242122_2_ - p_i242122_8_;
++            p_i242122_3_ = p_i242122_3_ - p_i242122_9_;
++            p_i242122_4_ = p_i242122_4_ - p_i242122_10_;
++            f = f + p_i242122_8_;
++            f1 = f1 + p_i242122_9_;
++            f2 = f2 + p_i242122_10_;
+ 
+-            if (p_i242121_11_)
++            if (p_i242122_11_)
+             {
+                 float f3 = f;
+-                f = p_i242121_2_;
+-                p_i242121_2_ = f3;
++                f = p_i242122_2_;
++                p_i242122_2_ = f3;
+             }
+ 
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex7 = new ModelRenderer.PositionTextureVertex(p_i242121_2_, p_i242121_3_, p_i242121_4_, 0.0F, 0.0F);
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex = new ModelRenderer.PositionTextureVertex(f, p_i242121_3_, p_i242121_4_, 0.0F, 8.0F);
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex1 = new ModelRenderer.PositionTextureVertex(f, f1, p_i242121_4_, 8.0F, 8.0F);
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex2 = new ModelRenderer.PositionTextureVertex(p_i242121_2_, f1, p_i242121_4_, 8.0F, 0.0F);
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex3 = new ModelRenderer.PositionTextureVertex(p_i242121_2_, p_i242121_3_, f2, 0.0F, 0.0F);
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex4 = new ModelRenderer.PositionTextureVertex(f, p_i242121_3_, f2, 0.0F, 8.0F);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex7 = new ModelRenderer.PositionTextureVertex(p_i242122_2_, p_i242122_3_, p_i242122_4_, 0.0F, 0.0F);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex = new ModelRenderer.PositionTextureVertex(f, p_i242122_3_, p_i242122_4_, 0.0F, 8.0F);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex1 = new ModelRenderer.PositionTextureVertex(f, f1, p_i242122_4_, 8.0F, 8.0F);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex2 = new ModelRenderer.PositionTextureVertex(p_i242122_2_, f1, p_i242122_4_, 8.0F, 0.0F);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex3 = new ModelRenderer.PositionTextureVertex(p_i242122_2_, p_i242122_3_, f2, 0.0F, 0.0F);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex4 = new ModelRenderer.PositionTextureVertex(f, p_i242122_3_, f2, 0.0F, 8.0F);
+             ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex5 = new ModelRenderer.PositionTextureVertex(f, f1, f2, 8.0F, 8.0F);
+-            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex6 = new ModelRenderer.PositionTextureVertex(p_i242121_2_, f1, f2, 8.0F, 0.0F);
+-            this.quads[2] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex7, modelrenderer$positiontexturevertex}, p_i242121_1_[1], true, p_i242121_12_, p_i242121_13_, p_i242121_11_, Direction.DOWN);
+-            this.quads[3] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex1, modelrenderer$positiontexturevertex2, modelrenderer$positiontexturevertex6, modelrenderer$positiontexturevertex5}, p_i242121_1_[0], true, p_i242121_12_, p_i242121_13_, p_i242121_11_, Direction.UP);
+-            this.quads[1] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex7, modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex6, modelrenderer$positiontexturevertex2}, p_i242121_1_[5], false, p_i242121_12_, p_i242121_13_, p_i242121_11_, Direction.WEST);
+-            this.quads[4] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex, modelrenderer$positiontexturevertex7, modelrenderer$positiontexturevertex2, modelrenderer$positiontexturevertex1}, p_i242121_1_[2], false, p_i242121_12_, p_i242121_13_, p_i242121_11_, Direction.NORTH);
+-            this.quads[0] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex, modelrenderer$positiontexturevertex1, modelrenderer$positiontexturevertex5}, p_i242121_1_[4], false, p_i242121_12_, p_i242121_13_, p_i242121_11_, Direction.EAST);
+-            this.quads[5] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex5, modelrenderer$positiontexturevertex6}, p_i242121_1_[3], false, p_i242121_12_, p_i242121_13_, p_i242121_11_, Direction.SOUTH);
++            ModelRenderer.PositionTextureVertex modelrenderer$positiontexturevertex6 = new ModelRenderer.PositionTextureVertex(p_i242122_2_, f1, f2, 8.0F, 0.0F);
++            this.quads[2] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex7, modelrenderer$positiontexturevertex}, p_i242122_1_[1], true, p_i242122_12_, p_i242122_13_, p_i242122_11_, Direction.DOWN);
++            this.quads[3] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex1, modelrenderer$positiontexturevertex2, modelrenderer$positiontexturevertex6, modelrenderer$positiontexturevertex5}, p_i242122_1_[0], true, p_i242122_12_, p_i242122_13_, p_i242122_11_, Direction.UP);
++            this.quads[1] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex7, modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex6, modelrenderer$positiontexturevertex2}, p_i242122_1_[5], false, p_i242122_12_, p_i242122_13_, p_i242122_11_, Direction.WEST);
++            this.quads[4] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex, modelrenderer$positiontexturevertex7, modelrenderer$positiontexturevertex2, modelrenderer$positiontexturevertex1}, p_i242122_1_[2], false, p_i242122_12_, p_i242122_13_, p_i242122_11_, Direction.NORTH);
++            this.quads[0] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex, modelrenderer$positiontexturevertex1, modelrenderer$positiontexturevertex5}, p_i242122_1_[4], false, p_i242122_12_, p_i242122_13_, p_i242122_11_, Direction.EAST);
++            this.quads[5] = this.makeTexturedQuad(new ModelRenderer.PositionTextureVertex[] {modelrenderer$positiontexturevertex3, modelrenderer$positiontexturevertex4, modelrenderer$positiontexturevertex5, modelrenderer$positiontexturevertex6}, p_i242122_1_[3], false, p_i242122_12_, p_i242122_13_, p_i242122_11_, Direction.SOUTH);
+         }
+ 
+         private ModelRenderer.TexturedQuad makeTexturedQuad(ModelRenderer.PositionTextureVertex[] p_makeTexturedQuad_1_, int[] p_makeTexturedQuad_2_, boolean p_makeTexturedQuad_3_, float p_makeTexturedQuad_4_, float p_makeTexturedQuad_5_, boolean p_makeTexturedQuad_6_, Direction p_makeTexturedQuad_7_)
+@@ -508,6 +539,16 @@
+                 return p_makeTexturedQuad_3_ ? new ModelRenderer.TexturedQuad(p_makeTexturedQuad_1_, (float)p_makeTexturedQuad_2_[2], (float)p_makeTexturedQuad_2_[3], (float)p_makeTexturedQuad_2_[0], (float)p_makeTexturedQuad_2_[1], p_makeTexturedQuad_4_, p_makeTexturedQuad_5_, p_makeTexturedQuad_6_, p_makeTexturedQuad_7_) : new ModelRenderer.TexturedQuad(p_makeTexturedQuad_1_, (float)p_makeTexturedQuad_2_[0], (float)p_makeTexturedQuad_2_[1], (float)p_makeTexturedQuad_2_[2], (float)p_makeTexturedQuad_2_[3], p_makeTexturedQuad_4_, p_makeTexturedQuad_5_, p_makeTexturedQuad_6_, p_makeTexturedQuad_7_);
+             }
+         }
++
++        public VertexPosition[][] getBoxVertexPositions(int p_getBoxVertexPositions_1_)
++        {
++            if (this.boxVertexPositions == null)
++            {
++                this.boxVertexPositions = new BoxVertexPositions();
++            }
++
++            return this.boxVertexPositions.get(p_getBoxVertexPositions_1_);
++        }
+     }
+ 
+     static class PositionTextureVertex

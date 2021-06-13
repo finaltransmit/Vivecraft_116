@@ -1,0 +1,156 @@
+--- a/net/optifine/shaders/config/ShaderMacros.java
++++ b/net/optifine/shaders/config/ShaderMacros.java
+@@ -1,9 +1,13 @@
+ package net.optifine.shaders.config;
+ 
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
+ import net.minecraft.client.renderer.texture.AtlasTexture;
+ import net.minecraft.util.Util;
+ import net.optifine.Config;
+ import net.optifine.shaders.ITextureFormat;
++import net.optifine.shaders.RenderStage;
+ import net.optifine.shaders.Shaders;
+ 
+ public class ShaderMacros
+@@ -16,8 +20,10 @@
+     public static final String MC_OS_MAC = "MC_OS_MAC";
+     public static final String MC_OS_LINUX = "MC_OS_LINUX";
+     public static final String MC_OS_OTHER = "MC_OS_OTHER";
++    public static final String MC_GL_VENDOR_AMD = "MC_GL_VENDOR_AMD";
+     public static final String MC_GL_VENDOR_ATI = "MC_GL_VENDOR_ATI";
+     public static final String MC_GL_VENDOR_INTEL = "MC_GL_VENDOR_INTEL";
++    public static final String MC_GL_VENDOR_MESA = "MC_GL_VENDOR_MESA";
+     public static final String MC_GL_VENDOR_NVIDIA = "MC_GL_VENDOR_NVIDIA";
+     public static final String MC_GL_VENDOR_XORG = "MC_GL_VENDOR_XORG";
+     public static final String MC_GL_VENDOR_OTHER = "MC_GL_VENDOR_OTHER";
+@@ -36,8 +42,10 @@
+     public static final String MC_HAND_DEPTH = "MC_HAND_DEPTH";
+     public static final String MC_OLD_HAND_LIGHT = "MC_OLD_HAND_LIGHT";
+     public static final String MC_OLD_LIGHTING = "MC_OLD_LIGHTING";
++    public static final String MC_ANISOTROPIC_FILTERING = "MC_ANISOTROPIC_FILTERING";
+     public static final String MC_TEXTURE_FORMAT_ = "MC_TEXTURE_FORMAT_";
+     private static ShaderMacro[] extensionMacros;
++    private static ShaderMacro[] constantMacros;
+ 
+     public static String getOs()
+     {
+@@ -61,31 +69,44 @@
+ 
+     public static String getVendor()
+     {
+-        String s = Config.openGlVendor;
++        String s = Config.openGlVersion;
+ 
+-        if (s == null)
++        if (s != null && s.contains("Mesa"))
+         {
+-            return "MC_GL_VENDOR_OTHER";
++            return "MC_GL_VENDOR_MESA";
+         }
+         else
+         {
+-            s = s.toLowerCase();
++            String s1 = Config.openGlVendor;
+ 
+-            if (s.startsWith("ati"))
+-            {
+-                return "MC_GL_VENDOR_ATI";
+-            }
+-            else if (s.startsWith("intel"))
++            if (s1 == null)
+             {
+-                return "MC_GL_VENDOR_INTEL";
+-            }
+-            else if (s.startsWith("nvidia"))
+-            {
+-                return "MC_GL_VENDOR_NVIDIA";
++                return "MC_GL_VENDOR_OTHER";
+             }
+             else
+             {
+-                return s.startsWith("x.org") ? "MC_GL_VENDOR_XORG" : "MC_GL_VENDOR_OTHER";
++                s1 = s1.toLowerCase();
++
++                if (s1.startsWith("amd"))
++                {
++                    return "MC_GL_VENDOR_AMD";
++                }
++                else if (s1.startsWith("ati"))
++                {
++                    return "MC_GL_VENDOR_ATI";
++                }
++                else if (s1.startsWith("intel"))
++                {
++                    return "MC_GL_VENDOR_INTEL";
++                }
++                else if (s1.startsWith("nvidia"))
++                {
++                    return "MC_GL_VENDOR_NVIDIA";
++                }
++                else
++                {
++                    return s1.startsWith("x.org") ? "MC_GL_VENDOR_XORG" : "MC_GL_VENDOR_OTHER";
++                }
+             }
+         }
+     }
+@@ -168,6 +189,32 @@
+         return extensionMacros;
+     }
+ 
++    public static ShaderMacro[] getConstantMacros()
++    {
++        if (constantMacros == null)
++        {
++            List<ShaderMacro> list = new ArrayList<>();
++            list.addAll(Arrays.asList(getRenderStages()));
++            constantMacros = list.toArray(new ShaderMacro[list.size()]);
++        }
++
++        return constantMacros;
++    }
++
++    private static ShaderMacro[] getRenderStages()
++    {
++        RenderStage[] arenderstage = RenderStage.values();
++        ShaderMacro[] ashadermacro = new ShaderMacro[arenderstage.length];
++
++        for (int i = 0; i < arenderstage.length; ++i)
++        {
++            RenderStage renderstage = arenderstage[i];
++            ashadermacro[i] = new ShaderMacro(PREFIX_MACRO + "RENDER_STAGE_" + renderstage.name(), "" + renderstage.ordinal());
++        }
++
++        return ashadermacro;
++    }
++
+     public static String getFixedMacroLines()
+     {
+         StringBuilder stringbuilder = new StringBuilder();
+@@ -213,6 +260,11 @@
+             addMacroLine(stringbuilder, "MC_OLD_LIGHTING");
+         }
+ 
++        if (Config.isAnisotropicFiltering())
++        {
++            addMacroLine(stringbuilder, "MC_ANISOTROPIC_FILTERING", Config.getAnisotropicFilterLevel());
++        }
++
+         return stringbuilder.toString();
+     }
+ 
+@@ -253,6 +305,12 @@
+         }
+     }
+ 
++    public static String[] getHeaderMacroLines()
++    {
++        String s = getFixedMacroLines() + getOptionMacroLines() + getTextureMacroLines();
++        return Config.tokenize(s, "\n\r");
++    }
++
+     private static void addMacroLine(StringBuilder sb, String name, int value)
+     {
+         sb.append("#define ");

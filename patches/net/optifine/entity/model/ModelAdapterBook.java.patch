@@ -1,0 +1,11 @@
+--- a/net/optifine/entity/model/ModelAdapterBook.java
++++ b/net/optifine/entity/model/ModelAdapterBook.java
+@@ -14,7 +14,7 @@
+ {
+     public ModelAdapterBook()
+     {
+-        super(TileEntityType.ENCHANTING_TABLE, "book", 0.0F);
++        super(TileEntityType.ENCHANTING_TABLE, "enchanting_book", 0.0F, new String[] {"book"});
+     }
+ 
+     public Model makeModel()

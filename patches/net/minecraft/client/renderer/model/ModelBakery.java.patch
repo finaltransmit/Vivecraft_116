@@ -21,6 +21,20 @@
  public class ModelBakery
  {
      public static final RenderMaterial LOCATION_FIRE_0 = new RenderMaterial(AtlasTexture.LOCATION_BLOCKS_TEXTURE, new ResourceLocation("block/fire_0"));
+@@ -165,10 +170,10 @@
+         this.processLoading(profilerIn, maxMipmapLevel);
+     }
+ 
+-    protected ModelBakery(IResourceManager p_i242116_1_, BlockColors p_i242116_2_, boolean p_i242116_3_)
++    protected ModelBakery(IResourceManager p_i242117_1_, BlockColors p_i242117_2_, boolean p_i242117_3_)
+     {
+-        this.resourceManager = p_i242116_1_;
+-        this.blockColors = p_i242116_2_;
++        this.resourceManager = p_i242117_1_;
++        this.blockColors = p_i242117_2_;
+     }
+ 
+     protected void processLoading(IProfiler p_processLoading_1_, int p_processLoading_2_)
 @@ -203,7 +208,15 @@
                  this.loadTopModel(BlockModelShapes.getModelLocation(p_lambda$processLoading$8_1_));
              });

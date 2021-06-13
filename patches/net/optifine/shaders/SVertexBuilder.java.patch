@@ -1,0 +1,164 @@
+--- a/net/optifine/shaders/SVertexBuilder.java
++++ b/net/optifine/shaders/SVertexBuilder.java
+@@ -7,7 +7,11 @@
+ import java.nio.IntBuffer;
+ import net.minecraft.block.BlockState;
+ import net.minecraft.client.renderer.BufferBuilder;
++import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+ import net.minecraft.client.renderer.vertex.VertexFormat;
++import net.minecraft.util.math.vector.Vector3f;
++import net.optifine.Config;
++import net.optifine.render.VertexPosition;
+ 
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL20;
+@@ -101,7 +105,7 @@
+     {
+         SVertexBuilder svertexbuilder = wrr.sVertexBuilder;
+ 
+-        if (svertexbuilder.vertexSize == 16)
++        if (svertexbuilder.vertexSize == 18)
+         {
+             if (wrr.getDrawMode() == 7 && wrr.getVertexCount() % 4 == 0)
+             {
+@@ -109,7 +113,7 @@
+             }
+ 
+             long i = svertexbuilder.entityData[svertexbuilder.entityDataIndex];
+-            int j = wrr.getBufferIntSize() - 16 + 13;
++            int j = wrr.getBufferIntSize() - 18 + 13;
+             j = j + wrr.getIntStartPosition();
+             wrr.getIntBuffer().put(j, (int)i);
+             wrr.getIntBuffer().put(j + 1, (int)(i >> 32));
+@@ -125,11 +129,11 @@
+ 
+         SVertexBuilder svertexbuilder = wrr.sVertexBuilder;
+ 
+-        if (svertexbuilder.vertexSize == 16)
++        if (svertexbuilder.vertexSize == 18)
+         {
+             long i = svertexbuilder.entityData[svertexbuilder.entityDataIndex];
+ 
+-            for (int j = 13; j + 1 < data.length; j += 16)
++            for (int j = 13; j + 1 < data.length; j += 18)
+             {
+                 data[j] = (int)i;
+                 data[j + 1] = (int)(i >> 32);
+@@ -146,12 +150,12 @@
+ 
+         SVertexBuilder svertexbuilder = wrr.sVertexBuilder;
+ 
+-        if (svertexbuilder.vertexSize == 16)
++        if (svertexbuilder.vertexSize == 18)
+         {
+             long i = svertexbuilder.entityData[svertexbuilder.entityDataIndex];
+             int j = byteBuffer.limit() / 4;
+ 
+-            for (int k = 13; k + 1 < j; k += 16)
++            for (int k = 13; k + 1 < j; k += 18)
+             {
+                 int l = (int)i;
+                 int i1 = (int)(i >> 32);
+@@ -165,7 +169,7 @@
+     {
+         SVertexBuilder svertexbuilder = wrr.sVertexBuilder;
+ 
+-        if (svertexbuilder.vertexSize == 16 && wrr.getDrawMode() == 7 && wrr.getVertexCount() % 4 == 0)
++        if (svertexbuilder.vertexSize == 18 && wrr.getDrawMode() == 7 && wrr.getVertexCount() % 4 == 0)
+         {
+             svertexbuilder.calcNormal(wrr, wrr.getBufferIntSize() - 4 * svertexbuilder.vertexSize);
+         }
+@@ -270,6 +274,63 @@
+         floatbuffer.put(baseIndex + 2 * this.vertexSize + 9 + 1, f48);
+         floatbuffer.put(baseIndex + 3 * this.vertexSize + 9, f47);
+         floatbuffer.put(baseIndex + 3 * this.vertexSize + 9 + 1, f48);
++
++        if (Shaders.useVelocityAttrib)
++        {
++            VertexPosition[] avertexposition = wrr.getQuadVertexPositions();
++            int k1 = Config.getWorldRenderer().getFrameCount();
++            this.setVelocity(floatbuffer, baseIndex, 0, avertexposition, k1, f, f1, f2);
++            this.setVelocity(floatbuffer, baseIndex, 1, avertexposition, k1, f5, f6, f7);
++            this.setVelocity(floatbuffer, baseIndex, 2, avertexposition, k1, f10, f11, f12);
++            this.setVelocity(floatbuffer, baseIndex, 3, avertexposition, k1, f15, f16, f17);
++            wrr.setQuadVertexPositions((VertexPosition[])null);
++        }
++
++        if (wrr.getVertexFormat() == DefaultVertexFormats.BLOCK)
++        {
++            Vector3f vector3f = wrr.getMidBlock();
++            float f51 = vector3f.getX();
++            float f49 = vector3f.getY();
++            float f50 = vector3f.getZ();
++            this.setMidBlock(intbuffer, baseIndex, 0, f51 - f, f49 - f1, f50 - f2);
++            this.setMidBlock(intbuffer, baseIndex, 1, f51 - f5, f49 - f6, f50 - f7);
++            this.setMidBlock(intbuffer, baseIndex, 2, f51 - f10, f49 - f11, f50 - f12);
++            this.setMidBlock(intbuffer, baseIndex, 3, f51 - f15, f49 - f16, f50 - f17);
++        }
++    }
++
++    public void setMidBlock(IntBuffer intBuffer, int baseIndex, int vertex, float mbx, float mby, float mbz)
++    {
++        int i = (int)(mbx * 64.0F) & 255;
++        int j = (int)(mby * 64.0F) & 255;
++        int k = (int)(mbz * 64.0F) & 255;
++        int l = (k << 16) + (j << 8) + i;
++        intBuffer.put(baseIndex + vertex * this.vertexSize + 8, l);
++    }
++
++    public void setVelocity(FloatBuffer floatBuffer, int baseIndex, int vertex, VertexPosition[] vps, int frameId, float x, float y, float z)
++    {
++        float f = 0.0F;
++        float f1 = 0.0F;
++        float f2 = 0.0F;
++
++        if (vps != null && vps.length == 4)
++        {
++            VertexPosition vertexposition = vps[vertex];
++            vertexposition.setPosition(frameId, x, y, z);
++
++            if (vertexposition.isVelocityValid())
++            {
++                f = vertexposition.getVelocityX();
++                f1 = vertexposition.getVelocityY();
++                f2 = vertexposition.getVelocityZ();
++            }
++        }
++
++        int i = baseIndex + vertex * this.vertexSize + 15;
++        floatBuffer.put(i + 0, f);
++        floatBuffer.put(i + 1, f1);
++        floatBuffer.put(i + 2, f2);
+     }
+ 
+     public static void calcNormalChunkLayer(BufferBuilder wrr)
+@@ -291,7 +352,7 @@
+     {
+         int i = vf.getSize();
+ 
+-        if (i != 64)
++        if (i != 72)
+         {
+             return false;
+         }
+@@ -303,10 +364,13 @@
+             GL20.glVertexAttribPointer(Shaders.tangentAttrib, 4, GL11.GL_SHORT, false, i, bb);
+             ((Buffer)bb).position(52);
+             GL20.glVertexAttribPointer(Shaders.entityAttrib, 3, GL11.GL_SHORT, false, i, bb);
++            ((Buffer)bb).position(60);
++            GL20.glVertexAttribPointer(Shaders.velocityAttrib, 3, GL11.GL_FLOAT, false, i, bb);
+             ((Buffer)bb).position(0);
+             GL20.glEnableVertexAttribArray(Shaders.midTexCoordAttrib);
+             GL20.glEnableVertexAttribArray(Shaders.tangentAttrib);
+             GL20.glEnableVertexAttribArray(Shaders.entityAttrib);
++            GL20.glEnableVertexAttribArray(Shaders.velocityAttrib);
+             return true;
+         }
+     }
+@@ -316,5 +380,6 @@
+         GL20.glDisableVertexAttribArray(Shaders.midTexCoordAttrib);
+         GL20.glDisableVertexAttribArray(Shaders.tangentAttrib);
+         GL20.glDisableVertexAttribArray(Shaders.entityAttrib);
++        GL20.glDisableVertexAttribArray(Shaders.velocityAttrib);
+     }
+ }

@@ -1,0 +1,45 @@
+--- a/net/optifine/shaders/BlockAliases.java
++++ b/net/optifine/shaders/BlockAliases.java
+@@ -40,6 +40,7 @@
+     private static boolean hasAliasMetadata = false;
+     private static PropertiesOrdered blockLayerPropertes = null;
+     private static boolean updateOnResourcesReloaded;
++    private static List<List<BlockAlias>> legacyAliases;
+ 
+     public static int getAliasBlockId(BlockState blockState)
+     {
+@@ -153,7 +154,7 @@
+ 
+                     if (list.size() <= 0)
+                     {
+-                        list = makeLegacyAliases();
++                        list = getLegacyAliases();
+                         hasAliasMetadata = true;
+                     }
+ 
+@@ -189,7 +190,7 @@
+         {
+             try
+             {
+-                in = MacroProcessor.process(in, path);
++                in = MacroProcessor.process(in, path, true);
+                 Properties properties = new PropertiesOrdered();
+                 properties.load(in);
+                 in.close();
+@@ -294,6 +295,16 @@
+         return ablockalias;
+     }
+ 
++    private static List<List<BlockAlias>> getLegacyAliases()
++    {
++        if (legacyAliases == null)
++        {
++            legacyAliases = makeLegacyAliases();
++        }
++
++        return legacyAliases;
++    }
++
+     private static List<List<BlockAlias>> makeLegacyAliases()
+     {
+         try

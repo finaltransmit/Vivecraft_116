@@ -1,0 +1,135 @@
+--- a/net/minecraft/client/renderer/GlDebugTextUtils.java
++++ b/net/minecraft/client/renderer/GlDebugTextUtils.java
+@@ -17,6 +17,7 @@
+ import net.minecraft.util.text.StringTextComponent;
+ import net.optifine.Config;
+ import net.optifine.GlErrors;
++import net.optifine.util.ArrayUtils;
+ import net.optifine.util.StrUtils;
+ import net.optifine.util.TimedEvent;
+ import org.apache.logging.log4j.LogManager;
+@@ -45,6 +46,40 @@
+     private static final List<Integer> DEBUG_LEVELS = ImmutableList.of(37190, 37191, 37192, 33387);
+     private static final List<Integer> DEBUG_LEVELS_ARB = ImmutableList.of(37190, 37191, 37192);
+     private static final Map<String, List<String>> SAVED_STATES = Maps.newHashMap();
++    private static int[] ignoredErrors = makeIgnoredErrors();
++
++    private static int[] makeIgnoredErrors()
++    {
++        String s = System.getProperty("gl.ignore.errors");
++
++        if (s == null)
++        {
++            return new int[0];
++        }
++        else
++        {
++            String[] astring = Config.tokenize(s, ",");
++            int[] aint = new int[0];
++
++            for (int i = 0; i < astring.length; ++i)
++            {
++                String s1 = astring[i].trim();
++                int j = s1.startsWith("0x") ? Config.parseHexInt(s1, -1) : Config.parseInt(s1, -1);
++
++                if (j < 0)
++                {
++                    Config.warn("Invalid error id: " + s1);
++                }
++                else
++                {
++                    Config.log("Ignore OpenGL error: " + j);
++                    aint = ArrayUtils.addIntToArray(aint, j);
++                }
++            }
++
++            return aint;
++        }
++    }
+ 
+     private static String getFallbackString(int p_209245_0_)
+     {
+@@ -131,45 +166,51 @@
+ 
+     private static void logDebugMessage(int source, int type, int id, int severity, int messageLength, long message, long p_209244_7_)
+     {
+-        if (!Config.isShaders() || source != 33352)
++        if (type != 33385 && type != 33386)
+         {
+-            Minecraft minecraft = Minecraft.getInstance();
+-
+-            if (minecraft == null || minecraft.getMainWindow() == null || !minecraft.getMainWindow().isClosed())
++            if (!ArrayUtils.contains(ignoredErrors, id))
+             {
+-                if (GlErrors.isEnabled(id))
++                if (!Config.isShaders() || source != 33352)
+                 {
+-                    String s = getSource(source);
+-                    String s1 = getType(type);
+-                    String s2 = getSeverity(severity);
+-                    String s3 = GLDebugMessageCallback.getMessage(messageLength, message);
+-                    s3 = StrUtils.trim(s3, " \n\r\t");
+-                    String s4 = String.format("OpenGL %s %s: %s (%s)", s, s1, id, s3);
+-                    Exception exception = new Exception("Stack trace");
+-                    StackTraceElement[] astacktraceelement = exception.getStackTrace();
+-                    StackTraceElement[] astacktraceelement1 = astacktraceelement.length > 2 ? Arrays.copyOfRange(astacktraceelement, 2, astacktraceelement.length) : astacktraceelement;
+-                    exception.setStackTrace(astacktraceelement1);
+-
+-                    if (type == 33356)
+-                    {
+-                        LOGGER.error(s4, (Throwable)exception);
+-                    }
+-                    else
+-                    {
+-                        LOGGER.info(s4, (Throwable)exception);
+-                    }
++                    Minecraft minecraft = Minecraft.getInstance();
+ 
+-                    if (Config.isShowGlErrors() && TimedEvent.isActive("ShowGlErrorDebug", 10000L))
++                    if (minecraft == null || minecraft.getMainWindow() == null || !minecraft.getMainWindow().isClosed())
+                     {
+-                        String s5 = Config.getGlErrorString(id);
+-
+-                        if (id == 0 || Config.equals(s5, "Unknown"))
++                        if (GlErrors.isEnabled(id))
+                         {
+-                            s5 = s3;
++                            String s = getSource(source);
++                            String s1 = getType(type);
++                            String s2 = getSeverity(severity);
++                            String s3 = GLDebugMessageCallback.getMessage(messageLength, message);
++                            s3 = StrUtils.trim(s3, " \n\r\t");
++                            String s4 = String.format("OpenGL %s %s: %s (%s)", s, s1, id, s3);
++                            Exception exception = new Exception("Stack trace");
++                            StackTraceElement[] astacktraceelement = exception.getStackTrace();
++                            StackTraceElement[] astacktraceelement1 = astacktraceelement.length > 2 ? Arrays.copyOfRange(astacktraceelement, 2, astacktraceelement.length) : astacktraceelement;
++                            exception.setStackTrace(astacktraceelement1);
++
++                            if (type == 33356)
++                            {
++                                LOGGER.error(s4, (Throwable)exception);
++                            }
++                            else
++                            {
++                                LOGGER.info(s4, (Throwable)exception);
++                            }
++
++                            if (Config.isShowGlErrors() && TimedEvent.isActive("ShowGlErrorDebug", 10000L))
++                            {
++                                String s5 = Config.getGlErrorString(id);
++
++                                if (id == 0 || Config.equals(s5, "Unknown"))
++                                {
++                                    s5 = s3;
++                                }
++
++                                String s6 = I18n.format("of.message.openglError", id, s5);
++                                Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new StringTextComponent(s6));
++                            }
+                         }
+-
+-                        String s6 = I18n.format("of.message.openglError", id, s5);
+-                        Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new StringTextComponent(s6));
+                     }
+                 }
+             }

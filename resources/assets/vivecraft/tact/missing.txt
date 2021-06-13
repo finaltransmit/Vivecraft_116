@@ -1,0 +1,5 @@
+rain
+potion_positive
+potion_negative
+generic_hit
+hunger

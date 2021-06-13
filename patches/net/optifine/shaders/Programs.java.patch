@@ -1,0 +1,50 @@
+--- a/net/optifine/shaders/Programs.java
++++ b/net/optifine/shaders/Programs.java
+@@ -49,30 +49,37 @@
+         return this.make(name, ProgramStage.NONE, true);
+     }
+ 
+-    public Program[] makeComposites(String prefix, int count)
++    public Program[] makePrograms(String prefix, int count, ProgramStage stage, Program backupProgram)
+     {
+         Program[] aprogram = new Program[count];
+ 
+         for (int i = 0; i < count; ++i)
+         {
+             String s = i == 0 ? prefix : prefix + i;
+-            aprogram[i] = this.makeComposite(s);
++            aprogram[i] = this.make(s, stage, this.programNone);
+         }
+ 
+         return aprogram;
+     }
+ 
+-    public Program[] makeDeferreds(String prefix, int count)
++    public Program[] makeComposites(String prefix, int count)
+     {
+-        Program[] aprogram = new Program[count];
++        return this.makePrograms(prefix, count, ProgramStage.COMPOSITE, this.programNone);
++    }
+ 
+-        for (int i = 0; i < count; ++i)
+-        {
+-            String s = i == 0 ? prefix : prefix + i;
+-            aprogram[i] = this.makeDeferred(s);
+-        }
++    public Program[] makeShadowcomps(String prefix, int count)
++    {
++        return this.makePrograms(prefix, count, ProgramStage.SHADOWCOMP, this.programNone);
++    }
+ 
+-        return aprogram;
++    public Program[] makePrepares(String prefix, int count)
++    {
++        return this.makePrograms(prefix, count, ProgramStage.PREPARE, this.programNone);
++    }
++
++    public Program[] makeDeferreds(String prefix, int count)
++    {
++        return this.makePrograms(prefix, count, ProgramStage.DEFERRED, this.programNone);
+     }
+ 
+     public Program getProgramNone()

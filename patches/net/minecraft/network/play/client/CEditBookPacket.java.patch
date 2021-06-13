@@ -1,0 +1,18 @@
+--- a/net/minecraft/network/play/client/CEditBookPacket.java
++++ b/net/minecraft/network/play/client/CEditBookPacket.java
+@@ -16,11 +16,11 @@
+     {
+     }
+ 
+-    public CEditBookPacket(ItemStack p_i242142_1_, boolean p_i242142_2_, int p_i242142_3_)
++    public CEditBookPacket(ItemStack p_i242143_1_, boolean p_i242143_2_, int p_i242143_3_)
+     {
+-        this.stack = p_i242142_1_.copy();
+-        this.updateAll = p_i242142_2_;
+-        this.field_244707_c = p_i242142_3_;
++        this.stack = p_i242143_1_.copy();
++        this.updateAll = p_i242143_2_;
++        this.field_244707_c = p_i242143_3_;
+     }
+ 
+     /**

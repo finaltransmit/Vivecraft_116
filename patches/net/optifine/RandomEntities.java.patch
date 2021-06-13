@@ -1,0 +1,26 @@
+--- a/net/optifine/RandomEntities.java
++++ b/net/optifine/RandomEntities.java
+@@ -220,7 +220,7 @@
+         }
+     }
+ 
+-    private static IRandomEntity getRandomEntityRendered()
++    public static IRandomEntity getRandomEntityRendered()
+     {
+         if (renderGlobal.renderedEntity != null)
+         {
+@@ -229,9 +229,12 @@
+         }
+         else
+         {
+-            if (tileEntityRendererDispatcher.tileEntityRendered != null)
++            TileEntityRendererDispatcher tileentityrendererdispatcher = tileEntityRendererDispatcher;
++
++            if (TileEntityRendererDispatcher.tileEntityRendered != null)
+             {
+-                TileEntity tileentity = tileEntityRendererDispatcher.tileEntityRendered;
++                tileentityrendererdispatcher = tileEntityRendererDispatcher;
++                TileEntity tileentity = TileEntityRendererDispatcher.tileEntityRendered;
+ 
+                 if (tileentity.getWorld() != null)
+                 {

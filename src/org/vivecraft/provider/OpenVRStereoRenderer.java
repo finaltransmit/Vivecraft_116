@@ -362,7 +362,7 @@ public class OpenVRStereoRenderer
 					framebufferVrRender.bindFramebufferTexture();
 					GlStateManager.activeTexture(GL13.GL_TEXTURE2);			
 					if (hasShaders) 
-						GlStateManager.bindTexture(Shaders.dfbDepthTextures.get(0)); // shadersmod has it's own depth buffer
+						GlStateManager.bindTexture(Shaders.dfb.depthTextures.get(0)); // shadersmod has it's own depth buffer
 					else 
 						GlStateManager.bindTexture(framebufferVrRender.depthBuffer);
 					GlStateManager.activeTexture(GL13.GL_TEXTURE0);

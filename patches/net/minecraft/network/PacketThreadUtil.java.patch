@@ -1,0 +1,28 @@
+--- a/net/minecraft/network/PacketThreadUtil.java
++++ b/net/minecraft/network/PacketThreadUtil.java
+@@ -8,6 +8,7 @@
+ import net.minecraft.util.concurrent.ThreadTaskExecutor;
+ import net.minecraft.world.World;
+ import net.minecraft.world.server.ServerWorld;
++import net.optifine.util.PacketRunnable;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -25,7 +26,7 @@
+     {
+         if (!executor.isOnExecutionThread())
+         {
+-            executor.execute(() ->
++            executor.execute(new PacketRunnable(packetIn, () ->
+             {
+                 clientPreProcessPacket(packetIn);
+ 
+@@ -36,7 +37,7 @@
+                 else {
+                     LOGGER.debug("Ignoring packet due to disconnection: " + packetIn);
+                 }
+-            });
++            }));
+             throw ThreadQuickExitException.INSTANCE;
+         }
+         else

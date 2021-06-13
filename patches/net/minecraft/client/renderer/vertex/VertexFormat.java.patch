@@ -1,0 +1,66 @@
+--- a/net/minecraft/client/renderer/vertex/VertexFormat.java
++++ b/net/minecraft/client/renderer/vertex/VertexFormat.java
+@@ -11,15 +11,16 @@
+ 
+ public class VertexFormat
+ {
+-    private final ImmutableList<VertexFormatElement> elements;
+-    private final IntList offsets = new IntArrayList();
++    private ImmutableList<VertexFormatElement> elements;
++    private IntList offsets = new IntArrayList();
+ 
+     /** The total size of this vertex format. */
+-    private final int vertexSize;
++    private int vertexSize;
++    private String name;
+     private int positionElementOffset = -1;
+     private int normalElementOffset = -1;
+     private int colorElementOffset = -1;
+-    private final Int2IntMap uvOffsetsById = new Int2IntArrayMap();
++    private Int2IntMap uvOffsetsById = new Int2IntArrayMap();
+ 
+     public VertexFormat(ImmutableList<VertexFormatElement> elementsIn)
+     {
+@@ -56,7 +57,7 @@
+ 
+     public String toString()
+     {
+-        return "format: " + this.elements.size() + " elements: " + (String)this.elements.stream().map(Object::toString).collect(Collectors.joining(" "));
++        return "format: " + this.name + " " + this.elements.size() + " elements: " + (String)this.elements.stream().map(Object::toString).collect(Collectors.joining(" "));
+     }
+ 
+     public int getIntegerSize()
+@@ -176,4 +177,33 @@
+     {
+         return this.uvOffsetsById.get(p_getUvOffsetById_1_);
+     }
++
++    public String getName()
++    {
++        return this.name;
++    }
++
++    public void setName(String p_setName_1_)
++    {
++        this.name = p_setName_1_;
++    }
++
++    public void copyFrom(VertexFormat p_copyFrom_1_)
++    {
++        this.elements = p_copyFrom_1_.elements;
++        this.offsets = p_copyFrom_1_.offsets;
++        this.vertexSize = p_copyFrom_1_.vertexSize;
++        this.name = p_copyFrom_1_.name;
++        this.positionElementOffset = p_copyFrom_1_.positionElementOffset;
++        this.normalElementOffset = p_copyFrom_1_.normalElementOffset;
++        this.colorElementOffset = p_copyFrom_1_.colorElementOffset;
++        this.uvOffsetsById = p_copyFrom_1_.uvOffsetsById;
++    }
++
++    public VertexFormat duplicate()
++    {
++        VertexFormat vertexformat = new VertexFormat(ImmutableList.of());
++        vertexformat.copyFrom(this);
++        return vertexformat;
++    }
+ }

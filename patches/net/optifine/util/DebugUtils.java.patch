@@ -1,0 +1,16 @@
+--- a/net/optifine/util/DebugUtils.java
++++ b/net/optifine/util/DebugUtils.java
+@@ -3,11 +3,12 @@
+ import java.nio.Buffer;
+ import java.nio.FloatBuffer;
+ import net.minecraft.util.math.vector.Matrix4f;
++import org.lwjgl.BufferUtils;
+ import org.lwjgl.opengl.GL11;
+ 
+ public class DebugUtils
+ {
+-    private static FloatBuffer floatBuffer16 = org.lwjgl.BufferUtils.createFloatBuffer(16);
++    private static FloatBuffer floatBuffer16 = BufferUtils.createFloatBuffer(16);
+     private static float[] floatArray16 = new float[16];
+ 
+     public static String getGlModelView()

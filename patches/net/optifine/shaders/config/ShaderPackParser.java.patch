@@ -1,0 +1,674 @@
+--- a/net/optifine/shaders/config/ShaderPackParser.java
++++ b/net/optifine/shaders/config/ShaderPackParser.java
+@@ -1,9 +1,5 @@
+ package net.optifine.shaders.config;
+ 
+-import java.io.BufferedReader;
+-import java.io.ByteArrayInputStream;
+-import java.io.CharArrayReader;
+-import java.io.CharArrayWriter;
+ import java.io.IOException;
+ import java.io.InputStream;
+ import java.io.InputStreamReader;
+@@ -42,6 +38,8 @@
+ import net.optifine.shaders.uniform.CustomUniforms;
+ import net.optifine.shaders.uniform.ShaderExpressionResolver;
+ import net.optifine.shaders.uniform.UniformType;
++import net.optifine.util.DynamicDimension;
++import net.optifine.util.LineBuffer;
+ import net.optifine.util.StrUtils;
+ 
+ public class ShaderPackParser
+@@ -91,10 +89,14 @@
+ 
+             if (!s.equals(""))
+             {
+-                String s1 = dir + "/" + s + ".vsh";
+-                String s2 = dir + "/" + s + ".fsh";
++                String s1 = dir + "/" + s + ".csh";
++                String s2 = dir + "/" + s + ".vsh";
++                String s3 = dir + "/" + s + ".gsh";
++                String s4 = dir + "/" + s + ".fsh";
+                 collectShaderOptions(shaderPack, s1, mapOptions);
+                 collectShaderOptions(shaderPack, s2, mapOptions);
++                collectShaderOptions(shaderPack, s3, mapOptions);
++                collectShaderOptions(shaderPack, s4, mapOptions);
+             }
+         }
+     }
+@@ -117,9 +119,13 @@
+                 {
+                     if (!Config.equals(shaderoption1.getValueDefault(), shaderoption.getValueDefault()))
+                     {
+-                        Config.warn("Ambiguous shader option: " + shaderoption.getName());
+-                        Config.warn(" - in " + Config.arrayToString((Object[])shaderoption1.getPaths()) + ": " + shaderoption1.getValueDefault());
+-                        Config.warn(" - in " + Config.arrayToString((Object[])shaderoption.getPaths()) + ": " + shaderoption.getValueDefault());
++                        if (shaderoption1.isEnabled())
++                        {
++                            Config.warn("Ambiguous shader option: " + shaderoption.getName());
++                            Config.warn(" - in " + Config.arrayToString((Object[])shaderoption1.getPaths()) + ": " + shaderoption1.getValueDefault());
++                            Config.warn(" - in " + Config.arrayToString((Object[])shaderoption.getPaths()) + ": " + shaderoption.getValueDefault());
++                        }
++
+                         shaderoption1.setEnabled(false);
+                     }
+ 
+@@ -158,17 +164,8 @@
+         try
+         {
+             List<String> list = new ArrayList<>();
+-            String s = loadFile(path, sp, 0, list, 0);
+-
+-            if (s == null)
+-            {
+-                return new String[0];
+-            }
+-            else
+-            {
+-                ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(s.getBytes());
+-                return Config.readLines(bytearrayinputstream);
+-            }
++            LineBuffer linebuffer = loadFile(path, sp, 0, list, 0);
++            return linebuffer == null ? new String[0] : linebuffer.getLines();
+         }
+         catch (IOException ioexception)
+         {
+@@ -491,89 +488,106 @@
+         }
+         else
+         {
+-            List<ShaderOption> list = new ArrayList<>();
+-            Set<String> set = new HashSet<>();
+-            String[] astring = Config.tokenize(s, " ");
++            String s1 = key + "$parent$";
+ 
+-            for (int i = 0; i < astring.length; ++i)
++            if (map.containsKey(s1))
+             {
+-                String s1 = astring[i];
++                Config.warn("[Shaders] Screen circular reference: " + key + " = " + s);
++                return false;
++            }
++            else
++            {
++                List<ShaderOption> list = new ArrayList<>();
++                Set<String> set = new HashSet<>();
++                String[] astring = Config.tokenize(s, " ");
+ 
+-                if (s1.equals("<empty>"))
+-                {
+-                    list.add((ShaderOption)null);
+-                }
+-                else if (set.contains(s1))
+-                {
+-                    Config.warn("[Shaders] Duplicate option: " + s1 + ", key: " + key);
+-                }
+-                else
++                for (int i = 0; i < astring.length; ++i)
+                 {
+-                    set.add(s1);
++                    String s2 = astring[i];
+ 
+-                    if (s1.equals("<profile>"))
++                    if (s2.equals("<empty>"))
+                     {
+-                        if (shaderProfiles == null)
+-                        {
+-                            Config.warn("[Shaders] Option profile can not be used, no profiles defined: " + s1 + ", key: " + key);
+-                        }
+-                        else
+-                        {
+-                            ShaderOptionProfile shaderoptionprofile = new ShaderOptionProfile(shaderProfiles, shaderOptions);
+-                            list.add(shaderoptionprofile);
+-                        }
++                        list.add((ShaderOption)null);
+                     }
+-                    else if (s1.equals("*"))
++                    else if (set.contains(s2))
+                     {
+-                        ShaderOption shaderoption1 = new ShaderOptionRest("<rest>");
+-                        list.add(shaderoption1);
++                        Config.warn("[Shaders] Duplicate option: " + s2 + ", key: " + key);
+                     }
+-                    else if (s1.startsWith("[") && s1.endsWith("]"))
++                    else
+                     {
+-                        String s3 = StrUtils.removePrefixSuffix(s1, "[", "]");
++                        set.add(s2);
+ 
+-                        if (!s3.matches("^[a-zA-Z0-9_]+$"))
++                        if (s2.equals("<profile>"))
+                         {
+-                            Config.warn("[Shaders] Invalid screen: " + s1 + ", key: " + key);
++                            if (shaderProfiles == null)
++                            {
++                                Config.warn("[Shaders] Option profile can not be used, no profiles defined: " + s2 + ", key: " + key);
++                            }
++                            else
++                            {
++                                ShaderOptionProfile shaderoptionprofile = new ShaderOptionProfile(shaderProfiles, shaderOptions);
++                                list.add(shaderoptionprofile);
++                            }
+                         }
+-                        else if (!parseGuiScreen("screen." + s3, props, map, shaderProfiles, shaderOptions))
++                        else if (s2.equals("*"))
+                         {
+-                            Config.warn("[Shaders] Invalid screen: " + s1 + ", key: " + key);
++                            ShaderOption shaderoption1 = new ShaderOptionRest("<rest>");
++                            list.add(shaderoption1);
+                         }
+-                        else
++                        else if (s2.startsWith("[") && s2.endsWith("]"))
+                         {
+-                            ShaderOptionScreen shaderoptionscreen = new ShaderOptionScreen(s3);
+-                            list.add(shaderoptionscreen);
+-                        }
+-                    }
+-                    else
+-                    {
+-                        ShaderOption shaderoption = ShaderUtils.getShaderOption(s1, shaderOptions);
++                            String s4 = StrUtils.removePrefixSuffix(s2, "[", "]");
+ 
+-                        if (shaderoption == null)
+-                        {
+-                            Config.warn("[Shaders] Invalid option: " + s1 + ", key: " + key);
+-                            list.add((ShaderOption)null);
++                            if (!s4.matches("^[a-zA-Z0-9_]+$"))
++                            {
++                                Config.warn("[Shaders] Invalid screen: " + s2 + ", key: " + key);
++                            }
++                            else
++                            {
++                                map.put(s1, (ScreenShaderOptions)null);
++                                boolean flag = parseGuiScreen("screen." + s4, props, map, shaderProfiles, shaderOptions);
++                                map.remove(s1);
++
++                                if (!flag)
++                                {
++                                    Config.warn("[Shaders] Invalid screen: " + s2 + ", key: " + key);
++                                }
++                                else
++                                {
++                                    ShaderOptionScreen shaderoptionscreen = new ShaderOptionScreen(s4);
++                                    list.add(shaderoptionscreen);
++                                }
++                            }
+                         }
+                         else
+                         {
+-                            shaderoption.setVisible(true);
+-                            list.add(shaderoption);
++                            ShaderOption shaderoption = ShaderUtils.getShaderOption(s2, shaderOptions);
++
++                            if (shaderoption == null)
++                            {
++                                Config.warn("[Shaders] Invalid option: " + s2 + ", key: " + key);
++                                list.add((ShaderOption)null);
++                            }
++                            else
++                            {
++                                shaderoption.setVisible(true);
++                                list.add(shaderoption);
++                            }
+                         }
+                     }
+                 }
+-            }
+ 
+-            ShaderOption[] ashaderoption = list.toArray(new ShaderOption[list.size()]);
+-            String s2 = props.getProperty(key + ".columns");
+-            int j = Config.parseInt(s2, 2);
+-            ScreenShaderOptions screenshaderoptions = new ScreenShaderOptions(key, ashaderoption, j);
+-            map.put(key, screenshaderoptions);
+-            return true;
++                ShaderOption[] ashaderoption = list.toArray(new ShaderOption[list.size()]);
++                String s3 = props.getProperty(key + ".columns");
++                int j = Config.parseInt(s3, 2);
++                ScreenShaderOptions screenshaderoptions = new ScreenShaderOptions(key, ashaderoption, j);
++                map.put(key, screenshaderoptions);
++                return true;
++            }
+         }
+     }
+ 
+-    public static BufferedReader resolveIncludes(BufferedReader reader, String filePath, IShaderPack shaderPack, int fileIndex, List<String> listFiles, int includeLevel) throws IOException
++    public static LineBuffer resolveIncludes(LineBuffer reader, String filePath, IShaderPack shaderPack, int fileIndex, List<String> listFiles, int includeLevel) throws IOException
+     {
+         String s = "/";
+         int i = filePath.lastIndexOf("/");
+@@ -583,42 +597,13 @@
+             s = filePath.substring(0, i);
+         }
+ 
+-        CharArrayWriter chararraywriter = new CharArrayWriter();
++        LineBuffer linebuffer = new LineBuffer();
+         int j = -1;
+-        Set<ShaderMacro> set = new LinkedHashSet<>();
+-        int k = 1;
++        int k = 0;
+ 
+-        while (true)
++        for (String s1 : reader)
+         {
+-            String s1 = reader.readLine();
+-
+-            if (s1 == null)
+-            {
+-                char[] achar = chararraywriter.toCharArray();
+-
+-                if (j >= 0 && set.size() > 0)
+-                {
+-                    StringBuilder stringbuilder = new StringBuilder();
+-
+-                    for (ShaderMacro shadermacro : set)
+-                    {
+-                        stringbuilder.append("#define ");
+-                        stringbuilder.append(shadermacro.getName());
+-                        stringbuilder.append(" ");
+-                        stringbuilder.append(shadermacro.getValue());
+-                        stringbuilder.append("\n");
+-                    }
+-
+-                    String s8 = stringbuilder.toString();
+-                    StringBuilder stringbuilder1 = new StringBuilder(new String(achar));
+-                    stringbuilder1.insert(j, s8);
+-                    String s10 = stringbuilder1.toString();
+-                    achar = s10.toCharArray();
+-                }
+-
+-                CharArrayReader chararrayreader = new CharArrayReader(achar);
+-                return new BufferedReader(chararrayreader);
+-            }
++            ++k;
+ 
+             if (j < 0)
+             {
+@@ -626,11 +611,13 @@
+ 
+                 if (matcher.matches())
+                 {
+-                    String s2 = ShaderMacros.getFixedMacroLines() + ShaderMacros.getOptionMacroLines() + ShaderMacros.getTextureMacroLines();
+-                    String s3 = s1 + "\n" + s2;
++                    linebuffer.add(s1);
++                    String[] astring = ShaderMacros.getHeaderMacroLines();
++                    linebuffer.add(astring);
++                    j = linebuffer.size();
+                     String s4 = "#line " + (k + 1) + " " + fileIndex;
+-                    s1 = s3 + s4;
+-                    j = chararraywriter.size() + s3.length();
++                    linebuffer.add(s4);
++                    continue;
+                 }
+             }
+ 
+@@ -638,64 +625,103 @@
+ 
+             if (matcher1.matches())
+             {
+-                String s6 = matcher1.group(1);
+-                boolean flag = s6.startsWith("/");
+-                String s9 = flag ? "/shaders" + s6 : s + "/" + s6;
++                String s2 = matcher1.group(1);
++                boolean flag = s2.startsWith("/");
++                String s3 = flag ? "/shaders" + s2 : s + "/" + s2;
+ 
+-                if (!listFiles.contains(s9))
++                if (!listFiles.contains(s3))
+                 {
+-                    listFiles.add(s9);
++                    listFiles.add(s3);
+                 }
+ 
+-                int l = listFiles.indexOf(s9) + 1;
+-                s1 = loadFile(s9, shaderPack, l, listFiles, includeLevel);
++                int l = listFiles.indexOf(s3) + 1;
++                LineBuffer linebuffer1 = loadFile(s3, shaderPack, l, listFiles, includeLevel);
+ 
+-                if (s1 == null)
++                if (linebuffer1 == null)
+                 {
+                     throw new IOException("Included file not found: " + filePath);
+                 }
+ 
+-                if (s1.endsWith("\n"))
+-                {
+-                    s1 = s1.substring(0, s1.length() - 1);
+-                }
+-
+-                String s5 = "#line 1 " + l + "\n";
+-
+-                if (s1.startsWith("#version "))
++                if (linebuffer1.indexMatch(PATTERN_VERSION) < 0)
+                 {
+-                    s5 = "";
++                    linebuffer.add("#line 1 " + l);
+                 }
+ 
+-                s1 = s5 + s1 + "\n#line " + (k + 1) + " " + fileIndex;
++                linebuffer.add(linebuffer1.getLines());
++                linebuffer.add("#line " + (k + 1) + " " + fileIndex);
++            }
++            else
++            {
++                linebuffer.add(s1);
+             }
++        }
++
++        if (j >= 0)
++        {
++            ShaderMacro[] ashadermacro = getCustomMacros(linebuffer, j);
+ 
+-            if (j >= 0 && s1.contains(ShaderMacros.getPrefixMacro()))
++            if (ashadermacro.length > 0)
+             {
+-                ShaderMacro[] ashadermacro = findMacros(s1, ShaderMacros.getExtensions());
++                LineBuffer linebuffer2 = new LineBuffer();
+ 
+                 for (int i1 = 0; i1 < ashadermacro.length; ++i1)
+                 {
+-                    ShaderMacro shadermacro1 = ashadermacro[i1];
+-                    set.add(shadermacro1);
++                    ShaderMacro shadermacro = ashadermacro[i1];
++                    linebuffer2.add(shadermacro.getSourceLine());
+                 }
++
++                linebuffer.insert(j, linebuffer2.getLines());
++            }
++        }
++
++        return linebuffer;
++    }
++
++    private static ShaderMacro[] getCustomMacros(LineBuffer lines, int startPos)
++    {
++        Set<ShaderMacro> set = new LinkedHashSet<>();
++
++        for (int i = startPos; i < lines.size(); ++i)
++        {
++            String s = lines.get(i);
++
++            if (s.contains(ShaderMacros.getPrefixMacro()))
++            {
++                ShaderMacro[] ashadermacro = findMacros(s, ShaderMacros.getExtensions());
++                set.addAll(Arrays.asList(ashadermacro));
++                ShaderMacro[] ashadermacro1 = findMacros(s, ShaderMacros.getConstantMacros());
++                set.addAll(Arrays.asList(ashadermacro1));
+             }
++        }
++
++        return set.toArray(new ShaderMacro[set.size()]);
++    }
++
++    public static LineBuffer remapTextureUnits(LineBuffer reader) throws IOException
++    {
++        if (!Shaders.isRemapLightmap())
++        {
++            return reader;
++        }
++        else
++        {
++            LineBuffer linebuffer = new LineBuffer();
+ 
+-            if (Shaders.isRemapLightmap())
++            for (String s : reader)
+             {
+-                String s7 = s1.replace("gl_TextureMatrix[1]", "gl_TextureMatrix[2]");
+-                s7 = s7.replace("gl_MultiTexCoord1", "gl_MultiTexCoord2");
++                String s1 = s.replace("gl_TextureMatrix[1]", "gl_TextureMatrix[2]");
++                s1 = s1.replace("gl_MultiTexCoord1", "gl_MultiTexCoord2");
+ 
+-                if (!s7.equals(s1))
++                if (!s1.equals(s))
+                 {
+-                    s7 = s7 + " // Legacy fix, replaced TU 1 with 2";
+-                    s1 = s7;
++                    s1 = s1 + " // Legacy fix, replaced TU 1 with 2";
++                    s = s1;
+                 }
++
++                linebuffer.add(s);
+             }
+ 
+-            chararraywriter.write(s1);
+-            chararraywriter.write("\n");
+-            ++k;
++            return linebuffer;
+         }
+     }
+ 
+@@ -716,7 +742,7 @@
+         return list.toArray(new ShaderMacro[list.size()]);
+     }
+ 
+-    private static String loadFile(String filePath, IShaderPack shaderPack, int fileIndex, List<String> listFiles, int includeLevel) throws IOException
++    private static LineBuffer loadFile(String filePath, IShaderPack shaderPack, int fileIndex, List<String> listFiles, int includeLevel) throws IOException
+     {
+         if (includeLevel >= 10)
+         {
+@@ -734,22 +760,8 @@
+             else
+             {
+                 InputStreamReader inputstreamreader = new InputStreamReader(inputstream, "ASCII");
+-                BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
+-                bufferedreader = resolveIncludes(bufferedreader, filePath, shaderPack, fileIndex, listFiles, includeLevel);
+-                CharArrayWriter chararraywriter = new CharArrayWriter();
+-
+-                while (true)
+-                {
+-                    String s = bufferedreader.readLine();
+-
+-                    if (s == null)
+-                    {
+-                        return chararraywriter.toString();
+-                    }
+-
+-                    chararraywriter.write(s);
+-                    chararraywriter.write("\n");
+-                }
++                LineBuffer linebuffer = LineBuffer.readAll(inputstreamreader);
++                return resolveIncludes(linebuffer, filePath, shaderPack, fileIndex, listFiles, includeLevel);
+             }
+         }
+     }
+@@ -933,10 +945,11 @@
+         {
+             String[] astring = Config.tokenize(s, ".");
+ 
+-            if (astring.length == 2)
++            if (astring.length >= 2 && astring.length <= 3)
+             {
+                 String s1 = astring[0];
+                 String s2 = astring[1];
++                String s3 = astring.length == 3 ? astring[2] : null;
+ 
+                 if (s1.equals("blend"))
+                 {
+@@ -948,12 +961,30 @@
+                     }
+                     else
+                     {
+-                        String s3 = props.getProperty(s).trim();
+-                        GlBlendState glblendstate = parseBlendState(s3);
++                        String s4 = props.getProperty(s).trim();
++                        GlBlendState glblendstate = parseBlendState(s4);
+ 
+                         if (glblendstate != null)
+                         {
+-                            program.setBlendState(glblendstate);
++                            if (s3 != null)
++                            {
++                                int i = program.getProgramStage().isAnyShadow() ? ShaderParser.getShadowColorIndex(s3) : Shaders.getBufferIndex(s3);
++                                int j = program.getProgramStage().isAnyShadow() ? 2 : 16;
++
++                                if (i >= 0 && i < j)
++                                {
++                                    program.setBlendStateColorIndexed(i, glblendstate);
++                                    SMCLog.info("Blend " + s2 + "." + s3 + "=" + s4);
++                                }
++                                else
++                                {
++                                    SMCLog.severe("Invalid buffer name: " + s3);
++                                }
++                            }
++                            else
++                            {
++                                program.setBlendState(glblendstate);
++                            }
+                         }
+                     }
+                 }
+@@ -1045,31 +1076,38 @@
+ 
+     private static RenderScale parseRenderScale(String str)
+     {
+-        String[] astring = Config.tokenize(str, " ");
+-        float f = Config.parseFloat(astring[0], -1.0F);
+-        float f1 = 0.0F;
+-        float f2 = 0.0F;
+-
+-        if (astring.length > 1)
++        if (str == null)
+         {
+-            if (astring.length != 3)
++            return null;
++        }
++        else
++        {
++            String[] astring = Config.tokenize(str, " ");
++            float f = Config.parseFloat(astring[0], -1.0F);
++            float f1 = 0.0F;
++            float f2 = 0.0F;
++
++            if (astring.length > 1)
++            {
++                if (astring.length != 3)
++                {
++                    SMCLog.severe("Invalid render scale: " + str);
++                    return null;
++                }
++
++                f1 = Config.parseFloat(astring[1], -1.0F);
++                f2 = Config.parseFloat(astring[2], -1.0F);
++            }
++
++            if (Config.between(f, 0.0F, 1.0F) && Config.between(f1, 0.0F, 1.0F) && Config.between(f2, 0.0F, 1.0F))
++            {
++                return new RenderScale(f, f1, f2);
++            }
++            else
+             {
+                 SMCLog.severe("Invalid render scale: " + str);
+                 return null;
+             }
+-
+-            f1 = Config.parseFloat(astring[1], -1.0F);
+-            f2 = Config.parseFloat(astring[2], -1.0F);
+-        }
+-
+-        if (Config.between(f, 0.0F, 1.0F) && Config.between(f1, 0.0F, 1.0F) && Config.between(f2, 0.0F, 1.0F))
+-        {
+-            return new RenderScale(f, f1, f2);
+-        }
+-        else
+-        {
+-            SMCLog.severe("Invalid render scale: " + str);
+-            return null;
+         }
+     }
+ 
+@@ -1096,7 +1134,7 @@
+                     else
+                     {
+                         Boolean[] aboolean = program.getBuffersFlip();
+-                        int i = Shaders.getBufferIndexFromString(s3);
++                        int i = Shaders.getBufferIndex(s3);
+ 
+                         if (i >= 0 && i < aboolean.length)
+                         {
+@@ -1156,4 +1194,86 @@
+         map.put("SRC_ALPHA_SATURATE", new Integer(776));
+         return Collections.unmodifiableMap(map);
+     }
++
++    public static DynamicDimension[] parseBufferSizes(Properties props, int countBuffers)
++    {
++        DynamicDimension[] adynamicdimension = new DynamicDimension[countBuffers];
++
++        for (String s : (Set<String>)(Set<?>)props.keySet())
++        {
++            if (s.startsWith("size.buffer."))
++            {
++                String[] astring = Config.tokenize(s, ".");
++
++                if (astring.length == 3)
++                {
++                    String s1 = astring[2];
++                    int i = Shaders.getBufferIndex(s1);
++
++                    if (i >= 0 && i < adynamicdimension.length)
++                    {
++                        String s2 = props.getProperty(s).trim();
++                        DynamicDimension dynamicdimension = parseDynamicDimension(s2);
++
++                        if (dynamicdimension == null)
++                        {
++                            SMCLog.severe("Invalid buffer size: " + s + "=" + s2);
++                        }
++                        else
++                        {
++                            adynamicdimension[i] = dynamicdimension;
++
++                            if (dynamicdimension.isRelative())
++                            {
++                                SMCLog.info("Relative size " + s1 + ": " + dynamicdimension.getWidth() + " " + dynamicdimension.getHeight());
++                            }
++                            else
++                            {
++                                SMCLog.info("Fixed size " + s1 + ": " + (int)dynamicdimension.getWidth() + " " + (int)dynamicdimension.getHeight());
++                            }
++                        }
++                    }
++                    else
++                    {
++                        SMCLog.severe("Invalid buffer name: " + s);
++                    }
++                }
++            }
++        }
++
++        return adynamicdimension;
++    }
++
++    private static DynamicDimension parseDynamicDimension(String str)
++    {
++        if (str == null)
++        {
++            return null;
++        }
++        else
++        {
++            String[] astring = Config.tokenize(str, " ");
++
++            if (astring.length != 2)
++            {
++                return null;
++            }
++            else
++            {
++                int i = Config.parseInt(astring[0], -1);
++                int j = Config.parseInt(astring[1], -1);
++
++                if (i >= 0 && j >= 0)
++                {
++                    return new DynamicDimension(false, (float)i, (float)j);
++                }
++                else
++                {
++                    float f = Config.parseFloat(astring[0], -1.0F);
++                    float f1 = Config.parseFloat(astring[1], -1.0F);
++                    return f >= 0.0F && f1 >= 0.0F ? new DynamicDimension(true, f, f1) : null;
++                }
++            }
++        }
++    }
+ }

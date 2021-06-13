@@ -1,0 +1,11 @@
+--- a/net/optifine/shaders/gui/GuiSlotShaders.java
++++ b/net/optifine/shaders/gui/GuiSlotShaders.java
+@@ -123,7 +123,7 @@
+                 else
+                 {
+                     s1 = s1.trim();
+-                    String s2 = "G6";
++                    String s2 = "G8";
+                     int i = Config.compareRelease(s2, s1);
+ 
+                     if (i >= 0)

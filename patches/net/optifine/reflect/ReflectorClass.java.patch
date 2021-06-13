@@ -1,0 +1,14 @@
+--- a/net/optifine/reflect/ReflectorClass.java
++++ b/net/optifine/reflect/ReflectorClass.java
+@@ -78,6 +78,11 @@
+         return new ReflectorMethod(this, name, paramTypes);
+     }
+ 
++    public ReflectorConstructor makeConstructor(Class[] paramTypes)
++    {
++        return new ReflectorConstructor(this, paramTypes);
++    }
++
+     public void resolve()
+     {
+         Class oclass = this.getTargetClass();

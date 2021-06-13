@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/gui/screen/MainMenuScreen.java
++++ b/net/minecraft/client/gui/screen/MainMenuScreen.java
+@@ -317,7 +317,7 @@
+ 
+             if (Reflector.ForgeHooksClient_renderMainMenu.exists())
+             {
+-                Reflector.callVoid(Reflector.ForgeHooksClient_renderMainMenu, this, matrixStack, this.font, this.width, this.height);
++                Reflector.callVoid(Reflector.ForgeHooksClient_renderMainMenu, this, matrixStack, this.font, this.width, this.height, l);
+             }
+ 
+             if (this.splashText != null)

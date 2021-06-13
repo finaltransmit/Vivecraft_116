@@ -1,0 +1,11 @@
+--- a/net/optifine/shaders/EntityAliases.java
++++ b/net/optifine/shaders/EntityAliases.java
+@@ -101,7 +101,7 @@
+         {
+             try
+             {
+-                in = MacroProcessor.process(in, path);
++                in = MacroProcessor.process(in, path, true);
+                 Properties properties = new PropertiesOrdered();
+                 properties.load(in);
+                 in.close();

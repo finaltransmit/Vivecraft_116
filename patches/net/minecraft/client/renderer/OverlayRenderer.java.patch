@@ -1,0 +1,79 @@
+--- a/net/minecraft/client/renderer/OverlayRenderer.java
++++ b/net/minecraft/client/renderer/OverlayRenderer.java
+@@ -16,8 +16,10 @@
+ import net.minecraft.util.math.MathHelper;
+ import net.minecraft.util.math.vector.Matrix4f;
+ import net.minecraft.util.math.vector.Vector3f;
++import net.optifine.Config;
+ import net.optifine.SmartAnimations;
+ import net.optifine.reflect.Reflector;
++import net.optifine.shaders.Shaders;
+ import org.apache.commons.lang3.tuple.Pair;
+ 
+ public class OverlayRenderer
+@@ -132,35 +134,38 @@
+ 
+     private static void renderUnderwater(Minecraft minecraftIn, MatrixStack matrixStackIn)
+     {
+-        RenderSystem.enableTexture();
+-        minecraftIn.getTextureManager().bindTexture(TEXTURE_UNDERWATER);
+-
+-        if (SmartAnimations.isActive())
++        if (!Config.isShaders() || Shaders.isUnderwaterOverlay())
+         {
+-            SmartAnimations.textureRendered(minecraftIn.getTextureManager().getTexture(TEXTURE_UNDERWATER).getGlTextureId());
+-        }
++            RenderSystem.enableTexture();
++            minecraftIn.getTextureManager().bindTexture(TEXTURE_UNDERWATER);
+ 
+-        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+-        float f = minecraftIn.player.getBrightness();
+-        RenderSystem.enableBlend();
+-        RenderSystem.defaultBlendFunc();
+-        float f1 = 4.0F;
+-        float f2 = -1.0F;
+-        float f3 = 1.0F;
+-        float f4 = -1.0F;
+-        float f5 = 1.0F;
+-        float f6 = -0.5F;
+-        float f7 = -minecraftIn.player.rotationYaw / 64.0F;
+-        float f8 = minecraftIn.player.rotationPitch / 64.0F;
+-        Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
+-        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR_TEX);
+-        bufferbuilder.pos(matrix4f, -1.0F, -1.0F, -0.5F).color(f, f, f, 0.1F).tex(4.0F + f7, 4.0F + f8).endVertex();
+-        bufferbuilder.pos(matrix4f, 1.0F, -1.0F, -0.5F).color(f, f, f, 0.1F).tex(0.0F + f7, 4.0F + f8).endVertex();
+-        bufferbuilder.pos(matrix4f, 1.0F, 1.0F, -0.5F).color(f, f, f, 0.1F).tex(0.0F + f7, 0.0F + f8).endVertex();
+-        bufferbuilder.pos(matrix4f, -1.0F, 1.0F, -0.5F).color(f, f, f, 0.1F).tex(4.0F + f7, 0.0F + f8).endVertex();
+-        bufferbuilder.finishDrawing();
+-        WorldVertexBufferUploader.draw(bufferbuilder);
+-        RenderSystem.disableBlend();
++            if (SmartAnimations.isActive())
++            {
++                SmartAnimations.textureRendered(minecraftIn.getTextureManager().getTexture(TEXTURE_UNDERWATER).getGlTextureId());
++            }
++
++            BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
++            float f = minecraftIn.player.getBrightness();
++            RenderSystem.enableBlend();
++            RenderSystem.defaultBlendFunc();
++            float f1 = 4.0F;
++            float f2 = -1.0F;
++            float f3 = 1.0F;
++            float f4 = -1.0F;
++            float f5 = 1.0F;
++            float f6 = -0.5F;
++            float f7 = -minecraftIn.player.rotationYaw / 64.0F;
++            float f8 = minecraftIn.player.rotationPitch / 64.0F;
++            Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
++            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR_TEX);
++            bufferbuilder.pos(matrix4f, -1.0F, -1.0F, -0.5F).color(f, f, f, 0.1F).tex(4.0F + f7, 4.0F + f8).endVertex();
++            bufferbuilder.pos(matrix4f, 1.0F, -1.0F, -0.5F).color(f, f, f, 0.1F).tex(0.0F + f7, 4.0F + f8).endVertex();
++            bufferbuilder.pos(matrix4f, 1.0F, 1.0F, -0.5F).color(f, f, f, 0.1F).tex(0.0F + f7, 0.0F + f8).endVertex();
++            bufferbuilder.pos(matrix4f, -1.0F, 1.0F, -0.5F).color(f, f, f, 0.1F).tex(4.0F + f7, 0.0F + f8).endVertex();
++            bufferbuilder.finishDrawing();
++            WorldVertexBufferUploader.draw(bufferbuilder);
++            RenderSystem.disableBlend();
++        }
+     }
+ 
+     private static void renderFire(Minecraft minecraftIn, MatrixStack matrixStackIn)

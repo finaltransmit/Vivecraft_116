@@ -1,0 +1,18 @@
+--- a/net/minecraft/world/server/ChunkManager.java
++++ b/net/minecraft/world/server/ChunkManager.java
+@@ -1241,7 +1241,14 @@
+ 
+     protected void track(Entity entityIn)
+     {
+-        if (!(entityIn instanceof EnderDragonPartEntity))
++        boolean flag = entityIn instanceof EnderDragonPartEntity;
++
++        if (Reflector.PartEntity.exists())
++        {
++            flag = Reflector.PartEntity.isInstance(entityIn);
++        }
++
++        if (!flag)
+         {
+             EntityType<?> entitytype = entityIn.getType();
+             int i = entitytype.func_233602_m_() * 16;

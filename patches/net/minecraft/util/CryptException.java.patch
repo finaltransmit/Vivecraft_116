@@ -1,0 +1,13 @@
+--- a/net/minecraft/util/CryptException.java
++++ b/net/minecraft/util/CryptException.java
+@@ -2,8 +2,8 @@
+ 
+ public class CryptException extends Exception
+ {
+-    public CryptException(Throwable p_i242123_1_)
++    public CryptException(Throwable p_i242124_1_)
+     {
+-        super(p_i242123_1_);
++        super(p_i242124_1_);
+     }
+ }

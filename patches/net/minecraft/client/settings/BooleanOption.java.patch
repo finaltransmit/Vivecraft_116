@@ -1,0 +1,20 @@
+--- a/net/minecraft/client/settings/BooleanOption.java
++++ b/net/minecraft/client/settings/BooleanOption.java
+@@ -23,12 +23,12 @@
+         this(translationKeyIn, (ITextComponent)null, getter, setter);
+     }
+ 
+-    public BooleanOption(String p_i242129_1_, @Nullable ITextComponent p_i242129_2_, Predicate<GameSettings> p_i242129_3_, BiConsumer<GameSettings, Boolean> p_i242129_4_)
++    public BooleanOption(String p_i242130_1_, @Nullable ITextComponent p_i242130_2_, Predicate<GameSettings> p_i242130_3_, BiConsumer<GameSettings, Boolean> p_i242130_4_)
+     {
+-        super(p_i242129_1_);
+-        this.getter = p_i242129_3_;
+-        this.setter = p_i242129_4_;
+-        this.field_244785_aa = p_i242129_2_;
++        super(p_i242130_1_);
++        this.getter = p_i242130_3_;
++        this.setter = p_i242130_4_;
++        this.field_244785_aa = p_i242130_2_;
+     }
+ 
+     public void set(GameSettings options, String valueIn)

@@ -1,0 +1,24 @@
+--- a/net/minecraft/client/renderer/entity/layers/CatCollarLayer.java
++++ b/net/minecraft/client/renderer/entity/layers/CatCollarLayer.java
+@@ -6,6 +6,8 @@
+ import net.minecraft.client.renderer.entity.model.CatModel;
+ import net.minecraft.entity.passive.CatEntity;
+ import net.minecraft.util.ResourceLocation;
++import net.optifine.Config;
++import net.optifine.CustomColors;
+ 
+ public class CatCollarLayer extends LayerRenderer<CatEntity, CatModel<CatEntity>>
+ {
+@@ -22,6 +24,12 @@
+         if (entitylivingbaseIn.isTamed())
+         {
+             float[] afloat = entitylivingbaseIn.getCollarColor().getColorComponentValues();
++
++            if (Config.isCustomColors())
++            {
++                afloat = CustomColors.getWolfCollarColors(entitylivingbaseIn.getCollarColor(), afloat);
++            }
++
+             renderCopyCutoutModel(this.getEntityModel(), this.model, CAT_COLLAR, matrixStackIn, bufferIn, packedLightIn, entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, partialTicks, afloat[0], afloat[1], afloat[2]);
+         }
+     }

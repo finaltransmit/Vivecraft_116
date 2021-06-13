@@ -1,0 +1,16 @@
+--- a/net/minecraft/client/gui/social/FilterManager.java
++++ b/net/minecraft/client/gui/social/FilterManager.java
+@@ -19,10 +19,10 @@
+     private final SocialInteractionsService field_244755_c;
+     private final Map<String, UUID> field_244796_d = Maps.newHashMap();
+ 
+-    public FilterManager(Minecraft p_i242140_1_, SocialInteractionsService p_i242140_2_)
++    public FilterManager(Minecraft p_i242141_1_, SocialInteractionsService p_i242141_2_)
+     {
+-        this.field_244642_a = p_i242140_1_;
+-        this.field_244755_c = p_i242140_2_;
++        this.field_244642_a = p_i242141_1_;
++        this.field_244755_c = p_i242141_2_;
+     }
+ 
+     public void func_244646_a(UUID p_244646_1_)

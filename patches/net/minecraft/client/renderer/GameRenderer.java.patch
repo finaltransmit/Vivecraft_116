@@ -87,6 +87,7 @@
  import net.optifine.reflect.Reflector;
  import net.optifine.reflect.ReflectorResolver;
 +import net.optifine.render.RenderTypes;
++import net.optifine.shaders.GlState;
 +import net.optifine.shaders.Program;
  import net.optifine.shaders.Shaders;
  import net.optifine.shaders.ShadersRender;
@@ -114,11 +115,10 @@
 +import org.vivecraft.gameplay.trackers.TelescopeTracker;
 +import org.vivecraft.provider.MCOpenVR;
 +import org.vivecraft.reflection.MCReflection;
-+import org.vivecraft.render.RenderPass;
-+import org.vivecraft.render.VRActiveRenderInfo;
-+import org.vivecraft.render.VRWidgetHelper;
++import org.vivecraft.render.*;
 +import org.vivecraft.settings.VRHotkeys;
 +import org.vivecraft.settings.VRSettings;
++import org.vivecraft.utils.Debug;
 +import org.vivecraft.utils.Utils;
  
  public class GameRenderer implements IResourceManagerReloadListener, AutoCloseable
@@ -268,6 +268,24 @@
      private void renderHand(MatrixStack matrixStackIn, ActiveRenderInfo activeRenderInfoIn, float partialTicks)
      {
          this.renderHand(matrixStackIn, activeRenderInfoIn, partialTicks, true, true, false);
+@@ -519,7 +632,7 @@
+     {
+         if (!this.debugView)
+         {
+-            Shaders.setRenderingFirstPersonHand(true);
++            Shaders.beginRenderFirstPersonHand(p_renderHand_6_);
+             this.resetProjectionMatrix(this.getProjectionMatrix(p_renderHand_2_, p_renderHand_3_, false));
+             MatrixStack.Entry matrixstack$entry = p_renderHand_1_.getLast();
+             matrixstack$entry.getMatrix().setIdentity();
+@@ -557,7 +670,7 @@
+                 p_renderHand_1_.pop();
+             }
+ 
+-            Shaders.setRenderingFirstPersonHand(false);
++            Shaders.endRenderFirstPersonHand();
+ 
+             if (!p_renderHand_5_)
+             {
 @@ -604,13 +717,34 @@
              this.clipDistance = 173.0F;
          }
@@ -325,11 +343,12 @@
              if (Util.milliTime() - this.prevFrameTime > 500L)
              {
                  this.mc.displayInGameMenu(false);
-@@ -635,16 +771,23 @@
+@@ -635,16 +771,26 @@
          {
              this.prevFrameTime = Util.milliTime();
          }
 +    	}
++
  
          if (!this.mc.skipRenderWorld)
          {
@@ -346,12 +365,14 @@
                  this.mc.getProfiler().startSection("level");
 -                this.renderWorld(partialTicks, nanoTime, new MatrixStack());
 +    			this.renderWorld(partialTicks, nanoTime, matrixstack);
++
++
 +    			if(mc.currentPass != RenderPass.THIRD && mc.currentPass != RenderPass.CAMERA)
 +    				renderFaceOverlay(partialTicks);
  
                  if (this.mc.isSingleplayer() && this.timeWorldIcon < Util.milliTime() - 1000L)
                  {
-@@ -656,9 +799,10 @@
+@@ -656,9 +802,10 @@
                      }
                  }
  
@@ -363,7 +384,7 @@
                  {
                      RenderSystem.disableBlend();
                      RenderSystem.disableDepthTest();
-@@ -674,140 +818,35 @@
+@@ -674,141 +821,38 @@
  
                  this.mc.getFramebuffer().bindFramebuffer(true);
              }
@@ -404,13 +425,21 @@
 -                if (this.mc.player != null)
 -                {
 -                    float f = MathHelper.lerp(partialTicks, this.mc.player.prevTimeInPortal, this.mc.player.timeInPortal);
--
++    			if(KeyboardHandler.Showing) {
++    				if (mc.vrSettings.physicalKeyboard)
++    					renderPhysicalKeyboard(partialTicks);
++    				else
++    					render2D(partialTicks, KeyboardHandler.Framebuffer, KeyboardHandler.Pos_room, KeyboardHandler.Rotation_room, false);
++            }
+ 
 -                    if (f > 0.0F && this.mc.player.isPotionActive(Effects.NAUSEA) && this.mc.gameSettings.screenEffectScale < 1.0F)
 -                    {
 -                        this.func_243497_c(f * (1.0F - this.mc.gameSettings.screenEffectScale));
 -                    }
--                }
--
++    			if((mc.currentPass != RenderPass.THIRD || mc.vrSettings.mixedRealityRenderHands) && mc.currentPass != RenderPass.CAMERA){
++    				renderVRHands(partialTicks, true, true, true, true);
+                 }
+ 
 -                if (!this.mc.gameSettings.hideGUI || this.mc.currentScreen != null)
 -                {
 -                    RenderSystem.defaultAlphaFunc();
@@ -428,31 +457,25 @@
 -                    }
 -
 -                    RenderSystem.clear(256, Minecraft.IS_RUNNING_ON_MAC);
--                }
--
--                this.mc.getProfiler().endSection();
-+    			if(KeyboardHandler.Showing) {
-+    				if (mc.vrSettings.physicalKeyboard)
-+    					renderPhysicalKeyboard(partialTicks);
-+    				else
-+    					render2D(partialTicks, KeyboardHandler.Framebuffer, KeyboardHandler.Pos_room, KeyboardHandler.Rotation_room, false);
-             }
++    			RenderSystem.popMatrix();
+                 }
  
+                 this.mc.getProfiler().endSection();
+-            }
+-
 -            if (this.guiLoadingVisible != (this.mc.loadingGui != null))
 -            {
 -                if (this.mc.loadingGui != null)
 -                {
 -                    ResourceLoadProgressGui.loadLogoTexture(this.mc);
--
+ 
 -                    if (this.mc.loadingGui instanceof ResourceLoadProgressGui)
 -                    {
 -                        ResourceLoadProgressGui resourceloadprogressgui = (ResourceLoadProgressGui)this.mc.loadingGui;
 -                        resourceloadprogressgui.update();
 -                    }
-+    			if((mc.currentPass != RenderPass.THIRD || mc.vrSettings.mixedRealityRenderHands) && mc.currentPass != RenderPass.CAMERA){
-+    				renderVRHands(partialTicks, true, true, true, true);
-                 }
- 
+-                }
+-
 -                this.guiLoadingVisible = this.mc.loadingGui != null;
 -            }
 -
@@ -503,26 +526,25 @@
 -                        return String.format(Locale.ROOT, "Scaled: (%d, %d). Absolute: (%d, %d). Scale factor of %f", this.mc.getMainWindow().getScaledWidth(), this.mc.getMainWindow().getScaledHeight(), this.mc.getMainWindow().getFramebufferWidth(), this.mc.getMainWindow().getFramebufferHeight(), this.mc.getMainWindow().getGuiScaleFactor());
 -                    });
 -                    throw new ReportedException(crashreport1);
-+    			RenderSystem.popMatrix();
-                 }
+-                }
 -            }
 -
 -            this.lightmapTexture.setAllowed(true);
--        }
+         }
  
 -        this.frameFinish();
 -        this.waitForServerThread();
 -        MemoryMonitor.update();
 -        Lagometer.updateLagometer();
-+                this.mc.getProfiler().endSection();
  
 -        if (this.mc.gameSettings.ofProfiler)
 -        {
 -            this.mc.gameSettings.showDebugProfilerChart = true;
-         }
+-        }
      }
  
-@@ -851,7 +890,10 @@
+     private void createWorldIcon()
+@@ -851,7 +895,10 @@
  
      private boolean isDrawBlockOutline()
      {
@@ -534,7 +556,7 @@
          {
              return false;
          }
-@@ -886,17 +928,36 @@
+@@ -886,17 +933,36 @@
          }
      }
  
@@ -576,7 +598,7 @@
          if (Config.isShaders())
          {
              Shaders.beginRender(this.mc, this.activeRender, partialTicks, finishTimeNano);
-@@ -909,108 +970,71 @@
+@@ -909,108 +975,73 @@
          {
              Shaders.beginRenderPass(partialTicks, finishTimeNano);
          }
@@ -663,11 +685,13 @@
 -        }
 +        applyVRModelView(mc.currentPass, viewModel); //this is just rotation.
 +     //   applystereo(mc.currentPass, viewModel);
++
++        this.mc.worldRenderer.updateCameraAndRender(viewModel, partialTicks, finishTimeNano, flag1, activerenderinfo, this, this.lightmapTexture, projection);
++        CustomRender.renderStage(partialTicks, Renderable.RenderStage.POST_WORLD);
  
 -        matrixStackIn.rotate(Vector3f.XP.rotationDegrees(activerenderinfo.getPitch()));
 -        matrixStackIn.rotate(Vector3f.YP.rotationDegrees(activerenderinfo.getYaw() + 180.0F));
 -        this.mc.worldRenderer.updateCameraAndRender(matrixStackIn, partialTicks, finishTimeNano, flag1, activerenderinfo, this, this.lightmapTexture, matrix4f);
-+        this.mc.worldRenderer.updateCameraAndRender(viewModel, partialTicks, finishTimeNano, flag1, activerenderinfo, this, this.lightmapTexture, projection);
  
          if (Reflector.ForgeHooksClient_dispatchRenderLast.exists())
          {
@@ -711,7 +735,7 @@
          this.mc.getProfiler().endSection();
      }
  
-@@ -1122,8 +1146,6 @@
+@@ -1122,8 +1153,6 @@
  
          if (!this.initialized)
          {
@@ -720,7 +744,7 @@
              if (Config.getBitsOs() == 64 && Config.getBitsJre() == 32)
              {
                  Config.setNotify64BitJava(true);
-@@ -1292,25 +1314,30 @@
+@@ -1292,25 +1321,30 @@
              float f6 = this.itemActivationOffY * (float)(heightScaled / 4);
              RenderSystem.enableAlphaTest();
              RenderSystem.pushMatrix();
@@ -767,7 +791,7 @@
          }
      }
  
-@@ -1371,4 +1398,2196 @@
+@@ -1371,4 +1405,2196 @@
      {
          return this.overlayTexture;
      }
@@ -2306,12 +2330,12 @@
 +  		if((mc.currentPass == RenderPass.LEFT || mc.currentPass == RenderPass.RIGHT) && mc.vrSettings.vrUseStencil && MCOpenVR.isHMDTracking()){
 +  			Program lastProgram = Shaders.activeProgram;
 +  			if(shaders){
-+  				GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, Shaders.dfb);
++  				GlState.bindFramebuffer(Shaders.dfb);
 +  				Shaders.useProgram(Shaders.ProgramNone);
 +
 +  				for (int i = 0; i < Shaders.usedDepthBuffers; ++i)
 +  				{
-+  					GlStateManager.bindTexture(Shaders.dfbDepthTextures.get(i));
++  					GlStateManager.bindTexture(Shaders.dfb.depthTextures.get(i));
 +  					mc.stereoProvider.doStencilForEye(mc.currentPass == RenderPass.LEFT ? 0 : 1);
 +  				}
 +

@@ -1,0 +1,22 @@
+--- a/net/optifine/render/MultiTextureRenderer.java
++++ b/net/optifine/render/MultiTextureRenderer.java
+@@ -7,6 +7,7 @@
+ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+ import net.minecraft.util.math.MathHelper;
+ import net.optifine.Config;
++import net.optifine.shaders.Shaders;
+ import net.optifine.shaders.ShadersTex;
+ 
+ public class MultiTextureRenderer
+@@ -40,6 +41,11 @@
+             int j = textureatlassprite.spriteSpecular != null ? textureatlassprite.spriteSpecular.glSpriteTextureId : 0;
+             AtlasTexture atlastexture = textureatlassprite.getAtlasTexture();
+             ShadersTex.bindNSTextures(i, j, atlastexture.isNormalBlend(), atlastexture.isSpecularBlend(), atlastexture.isMipmaps());
++
++            if (Shaders.uniform_spriteBounds.isDefined())
++            {
++                Shaders.uniform_spriteBounds.setValue(textureatlassprite.getMinU(), textureatlassprite.getMinV(), textureatlassprite.getMaxU(), textureatlassprite.getMaxV());
++            }
+         }
+ 
+         if (bufferPositions.capacity() < aint.length)

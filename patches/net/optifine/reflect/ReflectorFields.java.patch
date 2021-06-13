@@ -1,0 +1,10 @@
+--- a/net/optifine/reflect/ReflectorFields.java
++++ b/net/optifine/reflect/ReflectorFields.java
+@@ -11,6 +11,7 @@
+     {
+         this.reflectorClass = reflectorClass;
+         this.fieldType = fieldType;
++        this.fieldCount = fieldCount;
+ 
+         if (reflectorClass.exists())
+         {

@@ -1,0 +1,129 @@
+--- a/com/mojang/blaze3d/vertex/IVertexBuilder.java
++++ b/com/mojang/blaze3d/vertex/IVertexBuilder.java
+@@ -16,8 +16,13 @@
+ import net.minecraft.util.math.vector.Vector3f;
+ import net.minecraft.util.math.vector.Vector3i;
+ import net.minecraftforge.client.extensions.IForgeVertexBuilder;
++import net.optifine.Config;
++import net.optifine.IRandomEntity;
++import net.optifine.RandomEntities;
+ import net.optifine.reflect.Reflector;
+ import net.optifine.render.RenderEnv;
++import net.optifine.render.VertexPosition;
++import net.optifine.shaders.Shaders;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -109,32 +114,44 @@
+         int i = 8;
+         int j = DefaultVertexFormats.BLOCK.getIntegerSize();
+         int k = aint.length / j;
++        boolean flag1 = Config.isShaders() && Shaders.useVelocityAttrib && Config.isMinecraftThread();
+ 
+-        for (int l = 0; l < k; ++l)
++        if (flag1)
+         {
+-            int i1 = l * j;
+-            float f6 = Float.intBitsToFloat(aint[i1 + 0]);
+-            float f7 = Float.intBitsToFloat(aint[i1 + 1]);
+-            float f8 = Float.intBitsToFloat(aint[i1 + 2]);
++            IRandomEntity irandomentity = RandomEntities.getRandomEntityRendered();
++
++            if (irandomentity != null)
++            {
++                VertexPosition[] avertexposition = p_addQuad_2_.getVertexPositions(irandomentity.getId());
++                this.setQuadVertexPositions(avertexposition);
++            }
++        }
++
++        for (int i1 = 0; i1 < k; ++i1)
++        {
++            int j1 = i1 * j;
++            float f6 = Float.intBitsToFloat(aint[j1 + 0]);
++            float f7 = Float.intBitsToFloat(aint[j1 + 1]);
++            float f8 = Float.intBitsToFloat(aint[j1 + 2]);
+             float f12 = 1.0F;
+-            float f13 = flag ? 1.0F : p_addQuad_3_[l];
++            float f13 = flag ? 1.0F : p_addQuad_3_[i1];
+             float f9;
+             float f10;
+             float f11;
+ 
+             if (p_addQuad_10_)
+             {
+-                int j1 = aint[i1 + 3];
+-                float f14 = (float)(j1 & 255) / 255.0F;
+-                float f15 = (float)(j1 >> 8 & 255) / 255.0F;
+-                float f16 = (float)(j1 >> 16 & 255) / 255.0F;
++                int l = aint[j1 + 3];
++                float f14 = (float)(l & 255) / 255.0F;
++                float f15 = (float)(l >> 8 & 255) / 255.0F;
++                float f16 = (float)(l >> 16 & 255) / 255.0F;
+                 f9 = f14 * f13 * p_addQuad_4_;
+                 f10 = f15 * f13 * p_addQuad_5_;
+                 f11 = f16 * f13 * p_addQuad_6_;
+ 
+                 if (FORGE)
+                 {
+-                    float f17 = (float)(j1 >> 24 & 255) / 255.0F;
++                    float f17 = (float)(l >> 24 & 255) / 255.0F;
+                     f12 = f17 * p_addQuad_7_;
+                 }
+             }
+@@ -150,22 +167,22 @@
+                 }
+             }
+ 
+-            int k1 = p_addQuad_8_[l];
++            int k1 = p_addQuad_8_[i1];
+ 
+             if (FORGE)
+             {
+-                k1 = this.applyBakedLighting(p_addQuad_8_[l], aint, i1);
++                k1 = this.applyBakedLighting(p_addQuad_8_[i1], aint, j1);
+             }
+ 
+-            float f19 = Float.intBitsToFloat(aint[i1 + 4]);
+-            float f20 = Float.intBitsToFloat(aint[i1 + 5]);
++            float f19 = Float.intBitsToFloat(aint[j1 + 4]);
++            float f20 = Float.intBitsToFloat(aint[j1 + 5]);
+             float f21 = matrix4f.getTransformX(f6, f7, f8, 1.0F);
+             float f22 = matrix4f.getTransformY(f6, f7, f8, 1.0F);
+             float f18 = matrix4f.getTransformZ(f6, f7, f8, 1.0F);
+ 
+             if (FORGE)
+             {
+-                Vector3f vector3f = this.applyBakedNormals(aint, i1, p_addQuad_1_.getNormal());
++                Vector3f vector3f = this.applyBakedNormals(aint, j1, p_addQuad_1_.getNormal());
+ 
+                 if (vector3f != null)
+                 {
+@@ -177,7 +194,7 @@
+ 
+             if (flag)
+             {
+-                f12 = p_addQuad_3_[l];
++                f12 = p_addQuad_3_[i1];
+             }
+ 
+             this.addVertex(f21, f22, f18, f9, f10, f11, f12, f19, f20, p_addQuad_9_, k1, f3, f4, f5);
+@@ -251,6 +268,19 @@
+         return null;
+     }
+ 
++default void setQuadVertexPositions(VertexPosition[] p_setQuadVertexPositions_1_)
++    {
++    }
++
++default void setMidBlock(float p_setMidBlock_1_, float p_setMidBlock_2_, float p_setMidBlock_3_)
++    {
++    }
++
++default IVertexBuilder getSecondaryBuilder()
++    {
++        return null;
++    }
++
+ default int applyBakedLighting(int p_applyBakedLighting_1_, int[] p_applyBakedLighting_2_, int p_applyBakedLighting_3_)
+     {
+         int i = getLightOffset(0);

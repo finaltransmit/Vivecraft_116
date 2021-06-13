@@ -1,0 +1,125 @@
+--- a/optifine/Installer.java
++++ b/optifine/Installer.java
+@@ -3,7 +3,6 @@
+ import java.awt.Component;
+ import java.awt.Dimension;
+ import java.awt.Font;
+-import java.io.CharArrayWriter;
+ import java.io.File;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+@@ -80,7 +79,6 @@
+         installLaunchwrapperLibrary(s1, s2, file1);
+         updateJson(file2, s3, file1, s1, s2);
+         updateLauncherJson(dirMc, s3);
+-        updateLauncherStateJson(dirMc, s3);
+     }
+ 
+     public static boolean doExtract(File dirMc) throws Exception
+@@ -141,98 +139,6 @@
+         }
+     }
+ 
+-    private static void updateLauncherStateJson(File dirMc, String mcVerOf)
+-    {
+-        try
+-        {
+-            File file1 = new File(dirMc, "launcher_ui_state.json");
+-
+-            if (!file1.exists() || !file1.isFile())
+-            {
+-                return;
+-            }
+-
+-            String s = Utils.readFile(file1, "UTF-8");
+-            JSONObject jsonobject = parseJson(s);
+-            JSONObject jsonobject1 = (JSONObject)jsonobject.get("data");
+-
+-            if (jsonobject1 == null)
+-            {
+-                jsonobject1 = new JSONObject();
+-                jsonobject.put("data", jsonobject1);
+-            }
+-
+-            String s1 = (String)jsonobject1.get("UiEvents");
+-
+-            if (s1 == null)
+-            {
+-                s1 = "{}";
+-            }
+-
+-            JSONObject jsonobject2 = parseJson(s1);
+-            JSONObject jsonobject3 = (JSONObject)jsonobject2.get("hidePlayerSafetyDisclaimer");
+-
+-            if (jsonobject3 == null)
+-            {
+-                jsonobject3 = new JSONObject();
+-                jsonobject2.put("hidePlayerSafetyDisclaimer", jsonobject3);
+-            }
+-
+-            String s2 = mcVerOf + "_OptiFine";
+-            jsonobject3.put(s2, Boolean.TRUE);
+-            s1 = jsonToString(jsonobject2, true);
+-            jsonobject1.put("UiEvents", s1);
+-            String s3 = (String)jsonobject1.get("UiSettings");
+-
+-            if (s3 != null)
+-            {
+-                JSONObject jsonobject4 = parseJson(s3);
+-                JSONObject jsonobject5 = (JSONObject)jsonobject4.get("javaConfigurationFilter");
+-
+-                if (jsonobject5 != null)
+-                {
+-                    jsonobject5.put("modded", Boolean.TRUE);
+-                    s3 = jsonToString(jsonobject4, true);
+-                    jsonobject1.put("UiSettings", s3);
+-                }
+-            }
+-
+-            FileOutputStream fileoutputstream = new FileOutputStream(file1);
+-            OutputStreamWriter outputstreamwriter = new OutputStreamWriter(fileoutputstream, "UTF-8");
+-            JSONWriter jsonwriter = new JSONWriter(outputstreamwriter);
+-            jsonwriter.writeObject(jsonobject);
+-            outputstreamwriter.flush();
+-            outputstreamwriter.close();
+-        }
+-        catch (Exception exception)
+-        {
+-            exception.printStackTrace();
+-        }
+-    }
+-
+-    public static JSONObject parseJson(String str) throws ParseException
+-    {
+-        JSONParser jsonparser = new JSONParser();
+-        return (JSONObject)jsonparser.parse(str);
+-    }
+-
+-    public static String jsonToString(JSONObject json, boolean oneLine) throws IOException
+-    {
+-        CharArrayWriter chararraywriter = new CharArrayWriter();
+-        int i = oneLine ? 0 : 2;
+-        JSONWriter jsonwriter = new JSONWriter(chararraywriter, i);
+-        jsonwriter.writeObject(json);
+-        chararraywriter.close();
+-        String s = chararraywriter.toString();
+-
+-        if (oneLine)
+-        {
+-            s = s.replace("\n", "");
+-        }
+-
+-        return s;
+-    }
+-
+     private static void updateJson(File dirMcVers, String mcVerOf, File dirMcLib, String mcVer, String ofEd) throws IOException, ParseException
+     {
+         File file1 = new File(dirMcVers, mcVerOf);
+@@ -263,7 +169,6 @@
+             }
+             else
+             {
+-                jsonobject1.put("minimumLauncherVersion", "21");
+                 JSONObject jsonobject2 = new JSONObject();
+                 JSONArray jsonarray1 = new JSONArray();
+                 jsonarray1.add("--tweakClass");

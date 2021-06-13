@@ -1,0 +1,31 @@
+--- a/net/optifine/shaders/ProgramStage.java
++++ b/net/optifine/shaders/ProgramStage.java
+@@ -4,6 +4,8 @@
+ {
+     NONE(""),
+     SHADOW("shadow"),
++    SHADOWCOMP("shadowcomp"),
++    PREPARE("prepare"),
+     GBUFFERS("gbuffers"),
+     DEFERRED("deferred"),
+     COMPOSITE("composite");
+@@ -19,4 +21,19 @@
+     {
+         return this.name;
+     }
++
++    public boolean isAnyComposite()
++    {
++        return this == SHADOWCOMP || this == PREPARE || this == DEFERRED || this == COMPOSITE;
++    }
++
++    public boolean isMainComposite()
++    {
++        return this == PREPARE || this == DEFERRED || this == COMPOSITE;
++    }
++
++    public boolean isAnyShadow()
++    {
++        return this == SHADOW || this == SHADOWCOMP;
++    }
+ }

@@ -1,0 +1,174 @@
+--- a/net/optifine/entity/model/CustomEntityModels.java
++++ b/net/optifine/entity/model/CustomEntityModels.java
+@@ -12,12 +12,20 @@
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
++import net.minecraft.block.Block;
++import net.minecraft.block.BlockState;
+ import net.minecraft.block.SkullBlock;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.entity.EntityRenderer;
+ import net.minecraft.client.renderer.entity.EntityRendererManager;
++import net.minecraft.client.renderer.entity.LivingRenderer;
++import net.minecraft.client.renderer.entity.TridentRenderer;
++import net.minecraft.client.renderer.entity.model.BookModel;
++import net.minecraft.client.renderer.entity.model.TridentModel;
+ import net.minecraft.client.renderer.model.Model;
+ import net.minecraft.client.renderer.model.ModelRenderer;
++import net.minecraft.client.renderer.tileentity.EnchantmentTableTileEntityRenderer;
++import net.minecraft.client.renderer.tileentity.ItemStackTileEntityRenderer;
+ import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+ import net.minecraft.entity.EntityType;
+@@ -35,6 +43,7 @@
+     private static Map<EntityType, EntityRenderer> originalEntityRenderMap = null;
+     private static Map<TileEntityType, TileEntityRenderer> originalTileEntityRenderMap = null;
+     private static Map<SkullBlock.ISkullType, Model> originalSkullModelMap = null;
++    private static List<TileEntityType> customTileEntityTypes = new ArrayList<>();
+ 
+     public static void update()
+     {
+@@ -56,9 +65,12 @@
+             map.clear();
+             map1.clear();
+             map2.clear();
++            customTileEntityTypes.clear();
+             map.putAll(originalEntityRenderMap);
+             map1.putAll(originalTileEntityRenderMap);
+             map2.putAll(originalSkullModelMap);
++            ItemStackTileEntityRenderer.instance.trident = new TridentModel();
++            setEnchantmentScreenBookModel(new BookModel());
+ 
+             if (Config.isCustomEntityModels())
+             {
+@@ -77,10 +89,30 @@
+                         if (ientityrenderer instanceof EntityRenderer)
+                         {
+                             map.put(either.getLeft().get(), (EntityRenderer)ientityrenderer);
++
++                            if (ientityrenderer instanceof TridentRenderer)
++                            {
++                                TridentRenderer tridentrenderer = (TridentRenderer)ientityrenderer;
++                                TridentModel tridentmodel = (TridentModel)Reflector.getFieldValue(tridentrenderer, Reflector.RenderTrident_modelTrident);
++
++                                if (tridentmodel != null)
++                                {
++                                    ItemStackTileEntityRenderer.instance.trident = tridentmodel;
++                                }
++                            }
+                         }
+                         else if (ientityrenderer instanceof TileEntityRenderer)
+                         {
+                             map1.put(either.getRight().get(), (TileEntityRenderer)ientityrenderer);
++
++                            if (ientityrenderer instanceof EnchantmentTableTileEntityRenderer)
++                            {
++                                EnchantmentTableTileEntityRenderer enchantmenttabletileentityrenderer = (EnchantmentTableTileEntityRenderer)ientityrenderer;
++                                BookModel bookmodel = (BookModel)Reflector.getFieldValue(enchantmenttabletileentityrenderer, Reflector.TileEntityEnchantmentTableRenderer_modelBook);
++                                setEnchantmentScreenBookModel(bookmodel);
++                            }
++
++                            customTileEntityTypes.add(either.getRight().get());
+                         }
+                         else
+                         {
+@@ -94,6 +126,37 @@
+         }
+     }
+ 
++    private static void setEnchantmentScreenBookModel(BookModel bookModel)
++    {
++        BookModel bookmodel = (BookModel)Reflector.GuiEnchantment_bookModel.getValue();
++
++        if (bookmodel != null && bookModel != null)
++        {
++            if (!Reflector.ModelBook_ModelRenderers.exists())
++            {
++                return;
++            }
++
++            if (!Reflector.ModelBook_bookParts.exists())
++            {
++                return;
++            }
++
++            int i = Reflector.ModelBook_ModelRenderers.getFieldCount();
++
++            for (int j = 0; j < i; ++j)
++            {
++                ModelRenderer modelrenderer = (ModelRenderer)Reflector.ModelBook_ModelRenderers.getValue(bookModel, j);
++                Reflector.ModelBook_ModelRenderers.setValue(bookmodel, j, modelrenderer);
++            }
++
++            List list = (List)Reflector.ModelBook_bookParts.getValue(bookModel);
++            Reflector.ModelBook_bookParts.setValue(bookmodel, list);
++            bookmodel.textureWidth = bookModel.textureWidth;
++            bookmodel.textureHeight = bookModel.textureHeight;
++        }
++    }
++
+     private static Map<EntityType, EntityRenderer> getEntityRenderMap()
+     {
+         EntityRendererManager entityrenderermanager = Minecraft.getInstance().getRenderManager();
+@@ -248,7 +311,7 @@
+                 {
+                     if (resourcelocation != null)
+                     {
+-                        ientityrenderer.setLocationTextureCustom(resourcelocation);
++                        setTextureLocation(modelAdapter, model, ientityrenderer, resourcelocation);
+                     }
+ 
+                     return ientityrenderer;
+@@ -257,6 +320,29 @@
+         }
+     }
+ 
++    private static void setTextureLocation(ModelAdapter modelAdapter, Model model, IEntityRenderer er, ResourceLocation textureLocation)
++    {
++        if (er instanceof LivingRenderer)
++        {
++            er.setLocationTextureCustom(textureLocation);
++        }
++        else
++        {
++            String[] astring = modelAdapter.getModelRendererNames();
++
++            for (int i = 0; i < astring.length; ++i)
++            {
++                String s = astring[i];
++                ModelRenderer modelrenderer = modelAdapter.getModelRenderer(model, s);
++
++                if (modelrenderer != null && modelrenderer.getTextureLocation() == null)
++                {
++                    modelrenderer.setTextureLocation(textureLocation);
++                }
++            }
++        }
++    }
++
+     private static boolean modifyModel(ModelAdapter modelAdapter, Model model, CustomModelRenderer[] modelRenderers, ModelResolver mr)
+     {
+         for (int i = 0; i < modelRenderers.length; ++i)
+@@ -348,4 +434,21 @@
+     {
+         return active;
+     }
++
++    public static boolean isCustomModel(BlockState blockStateIn)
++    {
++        Block block = blockStateIn.getBlock();
++
++        for (int i = 0; i < customTileEntityTypes.size(); ++i)
++        {
++            TileEntityType tileentitytype = customTileEntityTypes.get(i);
++
++            if (tileentitytype.isValidBlock(block))
++            {
++                return true;
++            }
++        }
++
++        return false;
++    }
+ }

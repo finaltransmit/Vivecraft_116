@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/gui/social/FilterList.java
++++ b/net/minecraft/client/gui/social/FilterList.java
+@@ -21,11 +21,11 @@
+     @Nullable
+     private String field_244653_q;
+ 
+-    public FilterList(SocialInteractionsScreen p_i242132_1_, Minecraft p_i242132_2_, int p_i242132_3_, int p_i242132_4_, int p_i242132_5_, int p_i242132_6_, int p_i242132_7_)
++    public FilterList(SocialInteractionsScreen p_i242133_1_, Minecraft p_i242133_2_, int p_i242133_3_, int p_i242133_4_, int p_i242133_5_, int p_i242133_6_, int p_i242133_7_)
+     {
+-        super(p_i242132_2_, p_i242132_3_, p_i242132_4_, p_i242132_5_, p_i242132_6_, p_i242132_7_);
+-        this.field_244650_a = p_i242132_1_;
+-        this.field_244651_o = p_i242132_2_;
++        super(p_i242133_2_, p_i242133_3_, p_i242133_4_, p_i242133_5_, p_i242133_6_, p_i242133_7_);
++        this.field_244650_a = p_i242133_1_;
++        this.field_244651_o = p_i242133_2_;
+         this.func_244605_b(false);
+         this.func_244606_c(false);
+     }

@@ -1,0 +1,19 @@
+--- a/net/optifine/util/TextureUtils.java
++++ b/net/optifine/util/TextureUtils.java
+@@ -55,6 +55,7 @@
+ import net.optifine.shaders.MultiTexID;
+ import net.optifine.shaders.Shaders;
+ import org.apache.commons.io.IOUtils;
++import org.lwjgl.BufferUtils;
+ import org.lwjgl.opengl.GL;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
+@@ -608,7 +609,7 @@
+             int i1 = width >> l;
+             int j = height >> l;
+             int k = i1 * j;
+-            IntBuffer intbuffer = org.lwjgl.BufferUtils.createIntBuffer(k);
++            IntBuffer intbuffer = BufferUtils.createIntBuffer(k);
+             int[] aint = new int[k];
+             GL11.glGetTexImage(GL11.GL_TEXTURE_2D, l, GL12.GL_BGRA, GL12.GL_UNSIGNED_INT_8_8_8_8_REV, intbuffer);
+             intbuffer.get(aint);

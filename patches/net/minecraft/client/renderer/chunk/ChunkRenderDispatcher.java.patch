@@ -1,0 +1,178 @@
+--- a/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
++++ b/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
+@@ -72,6 +72,7 @@
+ import net.optifine.render.RenderEnv;
+ import net.optifine.render.RenderTypes;
+ import net.optifine.shaders.SVertexBuilder;
++import net.optifine.shaders.Shaders;
+ import net.optifine.util.ChunkUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -104,21 +105,21 @@
+         this(worldIn, worldRendererIn, executorIn, java64bit, fixedBuilderIn, -1);
+     }
+ 
+-    public ChunkRenderDispatcher(World p_i242111_1_, WorldRenderer p_i242111_2_, Executor p_i242111_3_, boolean p_i242111_4_, RegionRenderCacheBuilder p_i242111_5_, int p_i242111_6_)
++    public ChunkRenderDispatcher(World p_i242112_1_, WorldRenderer p_i242112_2_, Executor p_i242112_3_, boolean p_i242112_4_, RegionRenderCacheBuilder p_i242112_5_, int p_i242112_6_)
+     {
+-        this.world = p_i242111_1_;
+-        this.worldRenderer = p_i242111_2_;
++        this.world = p_i242112_1_;
++        this.worldRenderer = p_i242112_2_;
+         int i = Math.max(1, (int)((double)Runtime.getRuntime().maxMemory() * 0.3D) / (RenderType.getBlockRenderTypes().stream().mapToInt(RenderType::getBufferSize).sum() * 4) - 1);
+         int j = Runtime.getRuntime().availableProcessors();
+-        int k = p_i242111_4_ ? j : Math.min(j, 4);
++        int k = p_i242112_4_ ? j : Math.min(j, 4);
+         int l = Math.max(1, Math.min(k, i));
+ 
+-        if (p_i242111_6_ > 0)
++        if (p_i242112_6_ > 0)
+         {
+-            l = p_i242111_6_;
++            l = p_i242112_6_;
+         }
+ 
+-        this.fixedBuilder = p_i242111_5_;
++        this.fixedBuilder = p_i242112_5_;
+         List<RegionRenderCacheBuilder> list = Lists.newArrayListWithExpectedSize(l);
+ 
+         try
+@@ -141,11 +142,11 @@
+             System.gc();
+         }
+ 
+-        this.freeBuilders = Queues.newArrayDeque(list);
++        this.freeBuilders = Queues.newConcurrentLinkedQueue(list);
+         this.countFreeBuilders = this.freeBuilders.size();
+         this.countRenderBuilders = this.countFreeBuilders;
+-        this.executor = p_i242111_3_;
+-        this.delegatedTaskExecutor = DelegatedTaskExecutor.create(p_i242111_3_, "Chunk Renderer");
++        this.executor = p_i242112_3_;
++        this.delegatedTaskExecutor = DelegatedTaskExecutor.create(p_i242112_3_, "Chunk Renderer");
+         this.delegatedTaskExecutor.enqueue(this::runTask);
+     }
+ 
+@@ -163,6 +164,13 @@
+             if (chunkrenderdispatcher$chunkrender$chunkrendertask != null)
+             {
+                 RegionRenderCacheBuilder regionrendercachebuilder = this.freeBuilders.poll();
++
++                if (regionrendercachebuilder == null)
++                {
++                    this.renderTasks.add(chunkrenderdispatcher$chunkrender$chunkrendertask);
++                    return;
++                }
++
+                 this.countRenderTasks = this.renderTasks.size();
+                 this.countFreeBuilders = this.freeBuilders.size();
+                 CompletableFuture.runAsync(() ->
+@@ -289,14 +297,24 @@
+ 
+     public void pauseChunkUpdates()
+     {
+-        while (this.listPausedBuilders.size() != this.countRenderBuilders)
+-        {
+-            this.runChunkUploads();
+-            RegionRenderCacheBuilder regionrendercachebuilder = this.freeBuilders.poll();
++        long i = System.currentTimeMillis();
+ 
+-            if (regionrendercachebuilder != null)
++        if (this.listPausedBuilders.size() <= 0)
++        {
++            while (this.listPausedBuilders.size() != this.countRenderBuilders)
+             {
+-                this.listPausedBuilders.add(regionrendercachebuilder);
++                this.runChunkUploads();
++                RegionRenderCacheBuilder regionrendercachebuilder = this.freeBuilders.poll();
++
++                if (regionrendercachebuilder != null)
++                {
++                    this.listPausedBuilders.add(regionrendercachebuilder);
++                }
++
++                if (System.currentTimeMillis() > i + 1000L)
++                {
++                    break;
++                }
+             }
+         }
+     }
+@@ -874,17 +892,17 @@
+                 this((ChunkPos)null, distanceSqIn);
+             }
+ 
+-            public ChunkRenderTask(ChunkPos p_i242118_2_, double p_i242118_3_)
++            public ChunkRenderTask(ChunkPos p_i242119_2_, double p_i242119_3_)
+             {
+-                this.distanceSq = p_i242118_3_;
++                this.distanceSq = p_i242119_3_;
+ 
+-                if (p_i242118_2_ == null)
++                if (p_i242119_2_ == null)
+                 {
+                     this.modelData = Collections.emptyMap();
+                 }
+                 else
+                 {
+-                    this.modelData = ModelDataManager.getModelData(Minecraft.getInstance().world, p_i242118_2_);
++                    this.modelData = ModelDataManager.getModelData(Minecraft.getInstance().world, p_i242119_2_);
+                 }
+             }
+ 
+@@ -913,10 +931,10 @@
+                 this((ChunkPos)null, distanceSqIn, renderCacheIn);
+             }
+ 
+-            public RebuildTask(ChunkPos p_i242110_2_, @Nullable double p_i242110_3_, ChunkRenderCache p_i242110_5_)
++            public RebuildTask(ChunkPos p_i242111_2_, @Nullable double p_i242111_3_, ChunkRenderCache p_i242111_5_)
+             {
+-                super(p_i242110_2_, p_i242110_3_);
+-                this.chunkRenderCache = p_i242110_5_;
++                super(p_i242111_2_, p_i242111_3_);
++                this.chunkRenderCache = p_i242111_5_;
+             }
+ 
+             public CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> execute(RegionRenderCacheBuilder builderIn)
+@@ -993,6 +1011,8 @@
+                     ChunkCacheOF chunkcacheof = ChunkRender.this.makeChunkCacheOF(blockpos);
+                     chunkcacheof.renderStart();
+                     RenderType[] arendertype = new RenderType[1];
++                    boolean flag = Config.isShaders();
++                    boolean flag1 = flag && Shaders.useMidBlockAttrib;
+                     BlockModelRenderer.enableCache();
+                     Random random = new Random();
+                     BlockRendererDispatcher blockrendererdispatcher = Minecraft.getInstance().getBlockRendererDispatcher();
+@@ -1088,6 +1108,11 @@
+                                         matrixstack.push();
+                                         matrixstack.translate((double)ChunkRender.this.regionDX + (double)(blockposm.getX() & 15), (double)ChunkRender.this.regionDY + (double)(blockposm.getY() & 15), (double)ChunkRender.this.regionDZ + (double)(blockposm.getZ() & 15));
+ 
++                                        if (flag1)
++                                        {
++                                            bufferbuilder3.setMidBlock(0.5F + (float)ChunkRender.this.regionDX + (float)(blockposm.getX() & 15), 0.5F + (float)ChunkRender.this.regionDY + (float)(blockposm.getY() & 15), 0.5F + (float)ChunkRender.this.regionDZ + (float)(blockposm.getZ() & 15));
++                                        }
++
+                                         if (blockrendererdispatcher.renderModel(blockstate, blockposm, chunkcacheof, matrixstack, bufferbuilder3, true, random, imodeldata))
+                                         {
+                                             compiledChunkIn.empty = false;
+@@ -1186,10 +1211,10 @@
+                 this((ChunkPos)null, distanceSqIn, compiledChunkIn);
+             }
+ 
+-            public SortTransparencyTask(ChunkPos p_i242103_2_, double p_i242103_3_, ChunkRenderDispatcher.CompiledChunk p_i242103_5_)
++            public SortTransparencyTask(ChunkPos p_i242104_2_, double p_i242104_3_, ChunkRenderDispatcher.CompiledChunk p_i242104_5_)
+             {
+-                super(p_i242103_2_, p_i242103_3_);
+-                this.sortCompiledChunk = p_i242103_5_;
++                super(p_i242104_2_, p_i242104_3_);
++                this.sortCompiledChunk = p_i242104_5_;
+             }
+ 
+             public CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> execute(RegionRenderCacheBuilder builderIn)
+@@ -1218,6 +1243,7 @@
+                     if (bufferbuilder$state != null && this.sortCompiledChunk.layersUsed.contains(RenderType.getTranslucent()))
+                     {
+                         BufferBuilder bufferbuilder = builderIn.getBuilder(RenderType.getTranslucent());
++                        bufferbuilder.setBlockLayer(RenderType.getTranslucent());
+                         ChunkRender.this.beginLayer(bufferbuilder);
+                         bufferbuilder.setVertexState(bufferbuilder$state);
+                         bufferbuilder.sortVertexData((float)ChunkRender.this.regionDX + f - (float)ChunkRender.this.position.getX(), (float)ChunkRender.this.regionDY + f1 - (float)ChunkRender.this.position.getY(), (float)ChunkRender.this.regionDZ + f2 - (float)ChunkRender.this.position.getZ());

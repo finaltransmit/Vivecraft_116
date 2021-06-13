@@ -1,0 +1,14 @@
+--- a/net/optifine/entity/model/ModelAdapterLlama.java
++++ b/net/optifine/entity/model/ModelAdapterLlama.java
+@@ -16,6 +16,11 @@
+         super(EntityType.LLAMA, "llama", 0.7F);
+     }
+ 
++    public ModelAdapterLlama(EntityType entityType, String name, float shadowSize)
++    {
++        super(entityType, name, shadowSize);
++    }
++
+     public Model makeModel()
+     {
+         return new LlamaModel(0.0F);

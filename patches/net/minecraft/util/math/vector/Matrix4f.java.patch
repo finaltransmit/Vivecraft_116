@@ -39,6 +39,48 @@
  
      public Matrix4f()
      {
+@@ -554,24 +554,24 @@
+         p_write_1_[15] = this.m33;
+     }
+ 
+-    public Matrix4f(float[] p_i242104_1_)
++    public Matrix4f(float[] p_i242105_1_)
+     {
+-        this.m00 = p_i242104_1_[0];
+-        this.m01 = p_i242104_1_[1];
+-        this.m02 = p_i242104_1_[2];
+-        this.m03 = p_i242104_1_[3];
+-        this.m10 = p_i242104_1_[4];
+-        this.m11 = p_i242104_1_[5];
+-        this.m12 = p_i242104_1_[6];
+-        this.m13 = p_i242104_1_[7];
+-        this.m20 = p_i242104_1_[8];
+-        this.m21 = p_i242104_1_[9];
+-        this.m22 = p_i242104_1_[10];
+-        this.m23 = p_i242104_1_[11];
+-        this.m30 = p_i242104_1_[12];
+-        this.m31 = p_i242104_1_[13];
+-        this.m32 = p_i242104_1_[14];
+-        this.m33 = p_i242104_1_[15];
++        this.m00 = p_i242105_1_[0];
++        this.m01 = p_i242105_1_[1];
++        this.m02 = p_i242105_1_[2];
++        this.m03 = p_i242105_1_[3];
++        this.m10 = p_i242105_1_[4];
++        this.m11 = p_i242105_1_[5];
++        this.m12 = p_i242105_1_[6];
++        this.m13 = p_i242105_1_[7];
++        this.m20 = p_i242105_1_[8];
++        this.m21 = p_i242105_1_[9];
++        this.m22 = p_i242105_1_[10];
++        this.m23 = p_i242105_1_[11];
++        this.m30 = p_i242105_1_[12];
++        this.m31 = p_i242105_1_[13];
++        this.m32 = p_i242105_1_[14];
++        this.m33 = p_i242105_1_[15];
+     }
+ 
+     public void set(Matrix4f p_set_1_)
 @@ -631,4 +631,49 @@
          this.m13 = p_setTranslation_2_;
          this.m23 = p_setTranslation_3_;

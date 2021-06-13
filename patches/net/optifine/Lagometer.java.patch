@@ -1,0 +1,11 @@
+--- a/net/optifine/Lagometer.java
++++ b/net/optifine/Lagometer.java
+@@ -163,7 +163,7 @@
+                 int l2 = k / scaleFactor - 8;
+                 IngameGui ingamegui = mc.ingameGUI;
+                 IngameGui.fill(matrixStackIn, k2 - 1, l2 - 1, k2 + 50, l2 + 10, -1605349296);
+-                mc.fontRenderer.drawString(matrixStackIn, " " + MemoryMonitor.getAllocationRateMb() + " MB/s", (float)k2, (float)l2, j2);
++                mc.fontRenderer.drawString(matrixStackIn, " " + MemoryMonitor.getGcRateMb() + " MB/s", (float)k2, (float)l2, j2);
+                 renderTimeNano = System.nanoTime() - i;
+             }
+         }

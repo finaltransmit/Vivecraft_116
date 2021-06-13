@@ -1,0 +1,73 @@
+--- a/net/optifine/shaders/config/MacroProcessor.java
++++ b/net/optifine/shaders/config/MacroProcessor.java
+@@ -14,10 +14,10 @@
+ 
+ public class MacroProcessor
+ {
+-    public static InputStream process(InputStream in, String path) throws IOException
++    public static InputStream process(InputStream in, String path, boolean useShaderOptions) throws IOException
+     {
+         String s = Config.readInputStream(in, "ASCII");
+-        String s1 = getMacroHeader(s);
++        String s1 = getMacroHeader(s, useShaderOptions);
+ 
+         if (!s1.isEmpty())
+         {
+@@ -67,7 +67,7 @@
+         }
+     }
+ 
+-    private static String getMacroHeader(String str) throws IOException
++    private static String getMacroHeader(String str, boolean useShaderOptions) throws IOException
+     {
+         StringBuilder stringbuilder = new StringBuilder();
+         List<ShaderOption> list = null;
+@@ -91,22 +91,44 @@
+                     stringbuilder.append(ShaderMacros.getFixedMacroLines());
+                 }
+ 
++                if (useShaderOptions)
++                {
++                    if (list == null)
++                    {
++                        list = getMacroOptions();
++                    }
++
++                    Iterator iterator = list.iterator();
++
++                    while (iterator.hasNext())
++                    {
++                        ShaderOption shaderoption = (ShaderOption)iterator.next();
++
++                        if (s.contains(shaderoption.getName()))
++                        {
++                            stringbuilder.append(shaderoption.getSourceLine());
++                            stringbuilder.append("\n");
++                            iterator.remove();
++                        }
++                    }
++                }
++
+                 if (list1 == null)
+                 {
+                     list1 = new ArrayList<>(Arrays.asList(ShaderMacros.getExtensions()));
+                 }
+ 
+-                Iterator iterator = list1.iterator();
++                Iterator iterator1 = list1.iterator();
+ 
+-                while (iterator.hasNext())
++                while (iterator1.hasNext())
+                 {
+-                    ShaderMacro shadermacro = (ShaderMacro)iterator.next();
++                    ShaderMacro shadermacro = (ShaderMacro)iterator1.next();
+ 
+                     if (s.contains(shadermacro.getName()))
+                     {
+                         stringbuilder.append(shadermacro.getSourceLine());
+                         stringbuilder.append("\n");
+-                        iterator.remove();
++                        iterator1.remove();
+                     }
+                 }
+             }

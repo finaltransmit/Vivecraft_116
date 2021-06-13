@@ -1,0 +1,83 @@
+--- a/net/optifine/util/MemoryMonitor.java
++++ b/net/optifine/util/MemoryMonitor.java
+@@ -1,5 +1,8 @@
+ package net.optifine.util;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
+ public class MemoryMonitor
+ {
+     private static long startTimeMs = System.currentTimeMillis();
+@@ -7,7 +10,10 @@
+     private static long lastTimeMs = startTimeMs;
+     private static long lastMemory = startMemory;
+     private static boolean gcEvent = false;
+-    private static int memBytesSec = 0;
++    private static long memBytesSec = 0L;
++    private static long memBytesSecAvg = 0L;
++    private static List<Long> listMemBytesSec = new ArrayList<>();
++    private static long gcBytesSec = 0L;
+     private static long MB = 1048576L;
+ 
+     public static void update()
+@@ -18,18 +24,32 @@
+ 
+         if (gcEvent)
+         {
+-            long k = lastTimeMs - startTimeMs;
+-            long l = lastMemory - startMemory;
+-            double d0 = (double)k / 1000.0D;
+-            int i1 = (int)((double)l / d0);
++            gcBytesSec = memBytesSec;
++            startTimeMs = i;
++            startMemory = j;
++        }
++
++        long k = i - startTimeMs;
++        long l = j - startMemory;
++        double d0 = (double)k / 1000.0D;
+ 
+-            if (i1 > 0)
++        if (l >= 0L && d0 > 0.0D)
++        {
++            memBytesSec = (long)((double)l / d0);
++            listMemBytesSec.add(memBytesSec);
++
++            if (i / 1000L != lastTimeMs / 1000L)
+             {
+-                memBytesSec = i1;
+-            }
++                long i1 = 0L;
+ 
+-            startTimeMs = i;
+-            startMemory = j;
++                for (Long olong : listMemBytesSec)
++                {
++                    i1 += olong;
++                }
++
++                memBytesSecAvg = i1 / (long)listMemBytesSec.size();
++                listMemBytesSec.clear();
++            }
+         }
+ 
+         lastTimeMs = i;
+@@ -59,6 +79,16 @@
+ 
+     public static long getAllocationRateMb()
+     {
+-        return (long)memBytesSec / MB;
++        return memBytesSec / MB;
++    }
++
++    public static long getAllocationRateAvgMb()
++    {
++        return memBytesSecAvg / MB;
++    }
++
++    public static long getGcRateMb()
++    {
++        return gcBytesSec / MB;
+     }
+ }

@@ -1,0 +1,23 @@
+--- a/net/minecraft/client/gui/screen/VideoSettingsScreen.java
++++ b/net/minecraft/client/gui/screen/VideoSettingsScreen.java
+@@ -264,17 +264,17 @@
+ 
+         if (s1.equals("HD"))
+         {
+-            s = "OptiFine HD G6";
++            s = "OptiFine HD G8";
+         }
+ 
+         if (s1.equals("HD_U"))
+         {
+-            s = "OptiFine HD G6 Ultra";
++            s = "OptiFine HD G8 Ultra";
+         }
+ 
+         if (s1.equals("L"))
+         {
+-            s = "OptiFine G6 Light";
++            s = "OptiFine G8 Light";
+         }
+ 
+         drawString(matrixStack, this.minecraft.fontRenderer, s, 2, this.height - 10, 8421504);

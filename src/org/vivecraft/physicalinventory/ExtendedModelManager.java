@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import net.minecraft.client.renderer.model.ModelBakery;
 import net.minecraft.util.ResourceLocation;
 
+/**
+ * Legacy Workaround to get Minecraft to Render our Custom Models as it's own
+ * */
 public class ExtendedModelManager {
 //	public ExtendedModelManager(AtlasTexture p_i1132_1_, BlockColors p_i1132_2_) {
 //		super(p_i396_1_, p_i396_2_, p_i396_3_);

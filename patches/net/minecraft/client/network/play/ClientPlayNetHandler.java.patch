@@ -172,7 +172,15 @@
          this.client.playerController.setPlayerCapabilities(clientplayerentity1);
          clientplayerentity1.setReducedDebug(clientplayerentity.hasReducedDebug());
          clientplayerentity1.setShowDeathScreen(clientplayerentity.isShowDeathScreen());
-@@ -1454,7 +1526,7 @@
+@@ -1368,6 +1440,7 @@
+         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.client);
+         Explosion explosion = new Explosion(this.client.world, (Entity)null, packetIn.getX(), packetIn.getY(), packetIn.getZ(), packetIn.getStrength(), packetIn.getAffectedBlockPositions());
+         explosion.doExplosionB(true);
++        this.client.hapticTracker.handleExplode(packetIn);
+         this.client.player.setMotion(this.client.player.getMotion().add((double)packetIn.getMotionX(), (double)packetIn.getMotionY(), (double)packetIn.getMotionZ()));
+     }
+ 
+@@ -1454,7 +1527,7 @@
      {
          PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.client);
          Container container = null;
@@ -181,7 +189,7 @@
  
          if (packetIn.getWindowId() == 0)
          {
-@@ -1469,6 +1541,9 @@
+@@ -1469,6 +1542,9 @@
          {
              this.sendPacket(new CConfirmTransactionPacket(packetIn.getWindowId(), packetIn.getActionNumber(), true));
          }
@@ -191,7 +199,7 @@
      }
  
      /**
-@@ -1521,7 +1596,15 @@
+@@ -1521,7 +1597,15 @@
          if (i == 1 && tileentity instanceof MobSpawnerTileEntity || flag || i == 3 && tileentity instanceof BeaconTileEntity || i == 4 && tileentity instanceof SkullTileEntity || i == 6 && tileentity instanceof BannerTileEntity || i == 7 && tileentity instanceof StructureBlockTileEntity || i == 8 && tileentity instanceof EndGatewayTileEntity || i == 9 && tileentity instanceof SignTileEntity || i == 11 && tileentity instanceof BedTileEntity || i == 5 && tileentity instanceof ConduitTileEntity || i == 12 && tileentity instanceof JigsawTileEntity || i == 13 && tileentity instanceof CampfireTileEntity || i == 14 && tileentity instanceof BeehiveTileEntity)
          {
              tileentity.read(this.client.world.getBlockState(blockpos), packetIn.getNbtCompound());
@@ -208,7 +216,7 @@
  
          if (flag && this.client.currentScreen instanceof CommandBlockScreen)
          {
-@@ -1783,6 +1866,9 @@
+@@ -1783,6 +1867,9 @@
          clientrecipebook.func_243196_a(this.recipeManager.getRecipes());
          clientrecipebook.getRecipes().forEach(imutablesearchtree::func_217872_a);
          imutablesearchtree.recalculate();
@@ -218,7 +226,7 @@
      }
  
      public void handlePlayerLook(SPlayerLookPacket packetIn)
-@@ -1886,7 +1972,7 @@
+@@ -1886,7 +1973,7 @@
  
          if (entity instanceof LivingEntity)
          {
@@ -227,7 +235,7 @@
  
              if (effect != null)
              {
-@@ -1899,10 +1985,25 @@
+@@ -1899,10 +1986,25 @@
  
      public void handleTags(STagsListPacket packetIn)
      {
@@ -256,7 +264,7 @@
          if (!multimap.isEmpty())
          {
              LOGGER.warn("Incomplete server tags, disconnecting. Missing: {}", (Object)multimap);
-@@ -1910,6 +2011,13 @@
+@@ -1910,6 +2012,13 @@
          }
          else
          {
@@ -270,7 +278,7 @@
              this.networkTagManager = itagcollectionsupplier;
  
              if (!this.netManager.isLocalChannel())
-@@ -1917,7 +2025,7 @@
+@@ -1917,7 +2026,7 @@
                  itagcollectionsupplier.updateTags();
              }
  
@@ -279,7 +287,7 @@
          }
      }
  
-@@ -2280,7 +2388,7 @@
+@@ -2280,7 +2389,7 @@
          PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.client);
          ResourceLocation resourcelocation = packetIn.getChannelName();
          PacketBuffer packetbuffer = null;
@@ -288,7 +296,7 @@
          try
          {
              packetbuffer = packetIn.getBufferData();
-@@ -2553,14 +2661,125 @@
+@@ -2553,14 +2662,125 @@
                  int l5 = packetbuffer.readInt();
                  this.client.debugRenderer.field_229018_q_.func_229022_a_(blockpos8, l3, s10, l5);
              }
@@ -416,7 +424,7 @@
              {
                  packetbuffer.release();
              }
-@@ -2955,4 +3174,14 @@
+@@ -2955,4 +3175,14 @@
      {
          return this.field_239163_t_;
      }
